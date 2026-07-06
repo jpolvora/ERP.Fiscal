@@ -41,8 +41,8 @@ Pacotes publicados automaticamente no **GitHub Packages** a cada push em `main`.
 
 | Gatilho | Versão | Onde publica |
 |---------|--------|--------------|
-| Merge/push em `main` | `0.1.{N}` — `N` em [`nuget.props`](nuget.props); CI publica e incrementa após publish | GitHub Packages + artefato CI |
-| PR para `main` | build + test apenas (sem pack/publish) | — |
+| PR para `main` | — (pack local `0.1.{N}-pr.*` só para smoke test) | — |
+| Merge/push em `main` | `0.1.{N}` | GitHub Packages + artefato CI |
 | Tag `v1.0.0` | `1.0.0` | GitHub Packages + nuget.org (se `NUGET_API_KEY` configurado) |
 
 O contador `PackagePatchNumber` é commitado automaticamente na `main` após cada publicação bem-sucedida (`chore: bump package version … [skip ci]`).
@@ -288,11 +288,11 @@ dotnet pack ERP.Fiscal.slnx -c Release -o ./artifacts/packages
 
 Workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
 
-1. **PR → `main`** — restore, build, test (sem pack)
-2. **push `main`** — resolve versão, pack, publish GitHub Packages, bump `nuget.props`, smoke test
-3. **tag `v*`** — pack/publish versão estável (+ nuget.org se `NUGET_API_KEY`)
+1. **PR → `main`** (`validate`) — restore, build, test, pack local, smoke test NuGet
+2. **push `main`** (`release`) — resolve versão, build, test, pack, publish GitHub Packages, bump `nuget.props`
+3. **tag `v*`** (`release`) — pack/publish versão estável (+ nuget.org se `NUGET_API_KEY`)
 
-**Code review agêntico:** apenas PRs com destino `main` — [`.github/workflows/cursor-code-review.yml`](.github/workflows/cursor-code-review.yml)
+**Code review agêntico (PR → `main` only):** [`.github/workflows/cursor-code-review.yml`](.github/workflows/cursor-code-review.yml)
 
 ---
 
