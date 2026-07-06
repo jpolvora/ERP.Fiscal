@@ -33,23 +33,31 @@ Todas as rotas exigem header `x-api-key`.
 | PDF CC-e | GET | `/nfe/{idNota}/cce/pdf` | | ❌ |
 | XML CC-e | GET | `/nfe/{idNota}/cce/xml` | | ❌ |
 | PDF DANFE | GET | `/nfe/{idNotaOrChave}/pdf` | Bytes PDF | ✅ `ObterPdfNfePorIdAsync` |
-| Reimpressão PDF | POST | `/nfe/{idNotaOrChave}/pdf/reimpressao` | | ❌ |
-| XML destinatário | GET | `/nfe/{idNotaOrChave}/xml` | XML autorizado | ✅ `ObterXmlNfePorIdAsync` |
+| XML destinatário | GET | `/nfe/{idNotaOrChave}/xml` | XML autorizado; query opcional `?tipo=cancelamento` | ✅ `ObterXmlNfePorIdAsync` |
 | Pré-visualização | POST | `/nfe/preview` | DANFE preview assíncrono | ❌ |
 | PDF preview | GET | `/nfe/{protocol}/preview` | Por protocolo preview | ❌ |
 | E-mail | POST | `/nfe/{idNota}/email` | Envio/reenvio e-mail | ❌ |
 | Consulta período | GET | `/nfe/consulta/periodo` | Query: cpfCnpj, datas | ❌ |
 | Inutilização | POST | `/nfe/inutilizacao` | Assíncrona | ❌ |
 | Status inutilização | GET | `/nfe/inutilizacao/{protocol}/status` | | ❌ |
-| Importar XML | POST | (ver Swagger) | Importação externa | ❌ |
+| Importar XML | POST | `/nfe/importa` | Importação de XML externo | ❌ |
+| Relatório emissão | GET | `/nfe/relatorio` | Query: `from`, `to` | ❌ |
+| Relatório por CNPJ | GET | `/nfe/{cnpj}/relatorio` | Query: `from`, `to` | ❌ |
+| Manifestar destinatário | POST | `/nfe/{idNotaOrChave}/manifestacao` | Manifestação do destinatário | ❌ |
+| Status manifestação | GET | `/nfe/{idNotaOrChave}/manifestacao/status` | Situação da manifestação | ❌ |
+| Insucesso entrega | POST | `/nfe/insucessoEntrega` | Evento assíncrono | ❌ |
+| Cancel. insucesso entrega | POST | `/nfe/cancelamentoInsucessoEntrega` | Cancelamento do evento | ❌ |
+| Notas destinadas | GET | `/nfe/destinada` | Query: `cpfCnpj`, `manifestada`, `status`, datas, paginação | ❌ |
+| Sync destinadas | POST | `/nfe/sincronizarDestinada/{cnpj}` | Sincronizar DF-e destinadas | ❌ |
+| Status sync destinadas | GET | `/nfe/sincronizarDestinada/{cnpj}/{chaveOrProtocol}` | Status da sincronização | ❌ |
 
-✅ = implementado em `PlugNotasHttpClient` / `INfeEmissaoProvider` na data desta doc.
+✅ = implementado em `PlugNotasHttpClient` / `INfeEmissaoProvider`. Fonte: [Swagger](https://docs.plugnotas.com.br) / coleção Postman oficial (verificado 2026-07-06).
 
 ---
 
 ## Status de consulta (`/resumo`)
 
-Valores documentados (Zendesk + Swagger):
+Valores documentados (Zendesk + Swagger). A API retorna **sem acento** (`CONCLUIDO`); artigos Zendesk podem exibir `CONCLUÍDO` — tratar case-insensitive na integração.
 
 | Status | Significado |
 |--------|-------------|
@@ -92,7 +100,7 @@ Swagger documenta eventos `POST` numerados (112110, 211110, etc.) e consultas as
 
 ## Notas destinadas (DF-e)
 
-Rotas separadas na tag **Notas Destinadas** — manifestação, sincronização. Não implementadas na lib.
+Rotas na mesma tag NF-e: `GET /nfe/destinada`, `POST /nfe/sincronizarDestinada/{cnpj}`, manifestação (`POST/GET .../manifestacao`). **Não implementadas** na lib — ver tabela acima e Swagger.
 
 ---
 

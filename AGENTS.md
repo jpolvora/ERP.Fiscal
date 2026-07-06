@@ -14,9 +14,11 @@ Biblioteca de integração fiscal (NF-e via **PlugNotas**), consumidor-agnóstic
 
 | Skill / Diretriz | Arquivo | Propósito e Contexto de Uso |
 |:---|:---|:---|
+| **sync-plugnotas-docs** | [`.agents/skills/sync-plugnotas-docs/SKILL.md`](file:///.agents/skills/sync-plugnotas-docs/SKILL.md) | **[Sempre neste repo]** Consulta [docs.plugnotas.com.br](https://docs.plugnotas.com.br), atualiza `docs/plugnotas/` no formato local (índice, progressive disclosure) e sugere melhorias. **Obrigatória** ao implementar features, corrigir bugs de integração ou sincronizar documentação. Regra Cursor: [`.cursor/rules/plugnotas-docs-sync.mdc`](.cursor/rules/plugnotas-docs-sync.mdc). |
 | **code-review** | [`.agents/skills/code-review/SKILL.md`](file:///.agents/skills/code-review/SKILL.md) | Regras para execução de revisão de código local rigorosa comparando a branch atual com a principal. |
 | **karpathy-guidelines** | [`.agents/skills/karpathy-guidelines/SKILL.md`](file:///.agents/skills/karpathy-guidelines/SKILL.md) | Boas práticas de codificação para evitar alucinações e erros comuns de LLMs. |
 | **consume-erp-fiscal** | [`.agents/skills/erp-fiscal-consumer/SKILL.md`](file:///.agents/skills/erp-fiscal-consumer/SKILL.md) | **[Portável para Consumidores]** Guia de integração para ERPs que consomem esta biblioteca. Ensina a instalar/atualizar via NuGet/GitHub Packages, integrar com ABP, e gerenciar as fronteiras rígidas de código (domínio especializado local vs lógica fiscal neutra). |
+| **security-check** | [`.agents/skills/security-check/SKILL.md`](file:///.agents/skills/security-check/SKILL.md) | **[Sempre neste repo]** Checagem contra vazamento de segredos, credenciais, chaves API e dados sensíveis antes de propor commits e concluir tarefas. |
 
 > [!TIP]
 > A skill **`consume-erp-fiscal`** deve ser copiada para a pasta `.agents/skills/consume-erp-fiscal/SKILL.md` no repositório de qualquer ERP que consuma esta lib. Isso garante que o agente trabalhando no ERP consumidor siga os padrões corretos de arquitetura.
@@ -28,14 +30,18 @@ Biblioteca de integração fiscal (NF-e via **PlugNotas**), consumidor-agnóstic
 - Responder em **Português (pt-BR)**, salvo pedido contrário.
 - Mudanças **cirúrgicas** — mínimo diff que resolve o pedido.
 - Seguir padrões **ABP Framework** para módulos C# (.NET 10).
+- **Documentação PlugNotas atualizada:** ao implementar features, corrigir integração ou alterar `Contracts/`/`Providers`/HTTP, seguir a skill [`sync-plugnotas-docs`](.agents/skills/sync-plugnotas-docs/SKILL.md) — consultar o Swagger em https://docs.plugnotas.com.br, cruzar com `docs/plugnotas/`, atualizar os `.md` afetados no mesmo trabalho e sugerir melhorias quando houver lacunas.
 - Consultar a documentação PlugNotas via [`docs/README.md`](docs/README.md) (compilação local com índice); para schema completo de campos, usar o Swagger em https://docs.plugnotas.com.br
 - Aplicar **SOLID** e **DRY**; preferir interfaces e abstrações reutilizáveis.
+- **Checagem de segurança obrigatória:** antes de qualquer commit ou ao final de uma sessão, verificar se há vazamentos de chaves de API, certificados ou segredos usando a skill [`security-check`](.agents/skills/security-check/SKILL.md).
 
 ---
 
 ## Documentação (PlugNotas)
 
-**Ponto de entrada:** [`docs/README.md`](docs/README.md) — índice da documentação oficial compilada em `.md` (jul/2026), com roteamento por contexto de tarefa.
+**Ponto de entrada:** [`docs/README.md`](docs/README.md) — índice da documentação oficial compilada em `.md`, com roteamento por contexto de tarefa.
+
+**Manutenção:** a compilação local **deve permanecer alinhada** à [documentação oficial PlugNotas](https://docs.plugnotas.com.br). Use a skill [`sync-plugnotas-docs`](.agents/skills/sync-plugnotas-docs/SKILL.md) para verificar, atualizar e propor melhorias — especialmente antes/depois de mudanças em providers, parsers, contratos JSON e rotas HTTP. A regra [`.cursor/rules/plugnotas-docs-sync.mdc`](.cursor/rules/plugnotas-docs-sync.mdc) garante que agentes carreguem essa orientação em toda sessão neste repositório.
 
 | Contexto | Documento |
 |----------|-----------|
@@ -47,6 +53,7 @@ Biblioteca de integração fiscal (NF-e via **PlugNotas**), consumidor-agnóstic
 | Rotas HTTP NF-e | [`docs/plugnotas/05-nfe-endpoints.md`](docs/plugnotas/05-nfe-endpoints.md) |
 | Payload JSON (builder no ERP) | [`docs/plugnotas/06-nfe-payload-json.md`](docs/plugnotas/06-nfe-payload-json.md) |
 | Mapeamento → `ERP.Fiscal.PlugNotas` | [`docs/plugnotas/07-mapeamento-erp-fiscal.md`](docs/plugnotas/07-mapeamento-erp-fiscal.md) |
+| Consulta CNPJ/CEP (auxiliares) | [`docs/plugnotas/08-auxiliares-cnpj-cep.md`](docs/plugnotas/08-auxiliares-cnpj-cep.md) |
 
 Não carregar todos os arquivos de uma vez — seguir a tabela **"Quando usar cada documento"** em [`docs/README.md`](docs/README.md).
 
@@ -287,6 +294,8 @@ curl -fsSL https://raw.githubusercontent.com/jpolvora/cursor-reviewer/main/run.s
 
 ## Referências
 
+- [`.agents/skills/sync-plugnotas-docs/SKILL.md`](.agents/skills/sync-plugnotas-docs/SKILL.md) — sincronizar e manter `docs/plugnotas/` vs Swagger oficial
+- [`.agents/skills/security-check/SKILL.md`](.agents/skills/security-check/SKILL.md) — Checagem de segurança e prevenção de vazamento de segredos
 - [`docs/README.md`](docs/README.md) — **índice** da documentação PlugNotas compilada (carregar sob demanda)
 - [`docs/plugnotas/README.md`](docs/plugnotas/README.md) — índice detalhado PlugNotas + regra de ouro lib vs consumidor
 - [README.md](README.md) — visão geral e quick start
