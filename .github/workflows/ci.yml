@@ -16,10 +16,87 @@ env:
   GITHUB_PACKAGES_SOURCE: https://nuget.pkg.github.com/jpolvora/index.json
 
 jobs:
-  build:
+  # PR → main: build, testes unitários, pack local e smoke test (sem publicar).
+  validate:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
 
-    # permissions não aceita expressões com github.* — write é seguro: pack/publish/bump têm `if` próprio
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Restore
+        run: dotnet restore ERP.Fiscal.slnx
+
+      - name: Build
+        run: dotnet build ERP.Fiscal.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test ERP.Fiscal.slnx --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-pr-${{ github.event.pull_request.number }}
+          path: '**/test-results.trx'
+          if-no-files-found: ignore
+
+      - name: Pack for smoke test
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(bash scripts/ci-package-version.sh resolve)-pr.${{ github.event.pull_request.number }}"
+          echo "SMOKE_PACKAGE_VERSION=${VERSION}" >> "${GITHUB_ENV}"
+          dotnet pack ERP.Fiscal.slnx \
+            --configuration Release \
+            --no-build \
+            --output "${RUNNER_TEMP}/packages" \
+            -p:PackageVersion="${VERSION}" \
+            -p:ContinuousIntegrationBuild=true
+
+      - name: Run package smoke test
+        shell: bash
+        working-directory: samples/ERP.Fiscal.PackageSmokeTest
+        run: |
+          set -euo pipefail
+          CONFIG="${RUNNER_TEMP}/smoke-nuget.config"
+          cat > "${CONFIG}" <<EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <packageSources>
+              <clear />
+              <add key="local-ci" value="${RUNNER_TEMP}/packages" />
+              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+            </packageSources>
+            <packageSourceMapping>
+              <packageSource key="local-ci">
+                <package pattern="ERP.Fiscal.*" />
+              </packageSource>
+              <packageSource key="nuget.org">
+                <package pattern="*" />
+              </packageSource>
+            </packageSourceMapping>
+          </configuration>
+          EOF
+          dotnet test --configuration Release \
+            --configfile "${CONFIG}" \
+            -p:ErpFiscalPackageVersion="${SMOKE_PACKAGE_VERSION}"
+
+  # push main / tag v*: build, pack, publish e bump (apenas main).
+  release:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
     permissions:
       contents: write
       packages: write
@@ -40,7 +117,6 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Resolve package version
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         id: version
         shell: bash
         run: |
@@ -70,7 +146,6 @@ jobs:
         run: dotnet test ERP.Fiscal.slnx --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
 
       - name: Pack
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         run: >
           dotnet pack ERP.Fiscal.slnx
           --configuration Release
@@ -80,7 +155,6 @@ jobs:
           -p:ContinuousIntegrationBuild=true
 
       - name: Upload NuGet packages
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         uses: actions/upload-artifact@v4
         with:
           name: nuget-packages-${{ steps.version.outputs.package_version }}
@@ -98,7 +172,6 @@ jobs:
           if-no-files-found: ignore
 
       - name: Publish to GitHub Packages
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         run: >
           dotnet nuget push "${{ runner.temp }}/packages/*.nupkg"
           --source "${{ env.GITHUB_PACKAGES_SOURCE }}"
@@ -106,7 +179,6 @@ jobs:
           --skip-duplicate
 
       - name: Publish symbols to GitHub Packages
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
         run: >
           dotnet nuget push "${{ runner.temp }}/packages/*.snupkg"
           --source "${{ env.GITHUB_PACKAGES_SOURCE }}"
@@ -114,7 +186,7 @@ jobs:
           --skip-duplicate
 
       - name: Publish to NuGet.org
-        if: startsWith(github.ref, 'refs/tags/v') && github.event_name == 'push'
+        if: startsWith(github.ref, 'refs/tags/v')
         run: >
           dotnet nuget push "${{ runner.temp }}/packages/*.nupkg"
           --api-key "${{ secrets.NUGET_API_KEY }}"
@@ -122,7 +194,7 @@ jobs:
           --skip-duplicate
 
       - name: Bump package version for next merge
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.version.outputs.should_bump == 'true'
+        if: github.ref == 'refs/heads/main' && steps.version.outputs.should_bump == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -133,42 +205,3 @@ jobs:
           git add nuget.props
           git commit -m "chore: bump package version to ${PREFIX}.${NEXT} [skip ci]"
           git push origin HEAD:main
-
-  package-smoke-test:
-    needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-
-    permissions:
-      contents: read
-      packages: read
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
-
-      - name: Authenticate GitHub Packages
-        run: >
-          dotnet nuget add source "${{ env.GITHUB_PACKAGES_SOURCE }}"
-          --name github
-          --username "${{ github.repository_owner }}"
-          --password "${{ secrets.GITHUB_TOKEN }}"
-          --store-password-in-clear-text
-
-      - name: Run package smoke test
-        working-directory: samples/ERP.Fiscal.PackageSmokeTest
-        run: |
-          version="${{ needs.build.outputs.package_version }}"
-          for attempt in 1 2 3; do
-            if dotnet test --configuration Release -p:ErpFiscalPackageVersion="${version}"; then
-              exit 0
-            fi
-            echo "Smoke test attempt ${attempt} failed; retrying in 15s..."
-            sleep 15
-          done
-          exit 1
