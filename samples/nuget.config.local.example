@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Copie para nuget.config.local e use: dotnet restore --configfile nuget.config.local -->
 <configuration>
   <packageSources>
     <clear />
     <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
     <add key="github" value="https://nuget.pkg.github.com/jpolvora/index.json" />
+    <add key="local" value="../artifacts/packages" />
   </packageSources>
   <packageSourceMapping>
     <packageSource key="github">
+      <package pattern="ERP.Fiscal.*" />
+    </packageSource>
+    <packageSource key="local">
       <package pattern="ERP.Fiscal.*" />
     </packageSource>
     <packageSource key="nuget.org">

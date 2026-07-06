@@ -33,3 +33,5 @@ TestResults/
 *.nupkg
 packages/
 artifacts/
+nuget.config.local
+samples/nuget.config.local
