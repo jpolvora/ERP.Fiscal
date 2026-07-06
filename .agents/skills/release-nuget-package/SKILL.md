@@ -12,7 +12,7 @@ version: 1.0
 
 Skill para o **fluxo completo de publicação** dos pacotes `ERP.Fiscal.Abstractions` e `ERP.Fiscal.PlugNotas`.
 
-**Script:** [`scripts/release.sh`](scripts/release.sh) — wrapper na raiz: [`scripts/release-nuget.sh`](../../../scripts/release-nuget.sh).
+**Script:** [`scripts/release.sh`](scripts/release.sh) — wrappers na raiz: [`scripts/release-nuget.sh`](../../../scripts/release-nuget.sh) (Bash) e [`scripts/release-nuget.ps1`](../../../scripts/release-nuget.ps1) (PowerShell).
 
 **Workflow CI:** [`.github/workflows/deploy-main.yml`](../../../.github/workflows/deploy-main.yml) (`Deploy Main`).
 
@@ -58,16 +58,29 @@ Antes de commitar ou publicar, aplicar a skill [`security-check`](../security-ch
 
 ## Fluxo automatizado (recomendado)
 
-Na raiz do repositório:
+Dependendo do seu ambiente, utilize o wrapper apropriado a partir da raiz do repositório:
 
+### No Windows (PowerShell)
+```powershell
+# 1. Diagnóstico de versões e estado
+.\scripts\release-nuget.ps1 status
+
+# 2. Publicação completa (merge develop -> main + deploy CI)
+.\scripts\release-nuget.ps1 publish --merge-develop
+
+# 3. Conferência de feeds
+.\scripts\release-nuget.ps1 verify
+```
+
+### No Linux / macOS / Git Bash
 ```bash
-# 1. Diagnóstico
+# 1. Diagnóstico de versões e estado
 bash scripts/release-nuget.sh status
 
-# 2. Publicação completa
-bash scripts/release-nuget.sh publish
+# 2. Publicação completa (merge develop -> main + deploy CI)
+bash scripts/release-nuget.sh publish --merge-develop
 
-# 3. Conferência (NuGet.org pode demorar alguns minutos para indexar)
+# 3. Conferência de feeds
 bash scripts/release-nuget.sh verify
 ```
 
@@ -91,7 +104,10 @@ bash scripts/release-nuget.sh verify
 
 ## Opções úteis
 
+As opções funcionam de forma idêntica tanto para o wrapper Bash quanto para o PowerShell (ex.: use `.\scripts\release-nuget.ps1` ou `bash scripts/release-nuget.sh`):
+
 ```bash
+# Exemplos com Bash (substitua por .\scripts\release-nuget.ps1 no PowerShell)
 bash scripts/release-nuget.sh publish --dry-run          # plano sem alterar remoto
 bash scripts/release-nuget.sh publish --merge-develop    # merge develop → main antes
 bash scripts/release-nuget.sh publish --force            # republicar versão existente no GH Packages

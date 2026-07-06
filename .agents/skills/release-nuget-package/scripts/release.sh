@@ -13,7 +13,10 @@
 #   --no-tag           Não cria/atualiza tag nem GitHub Release
 #   --no-watch         Não aguarda o workflow (apenas dispara)
 
-set -euo pipefail
+set -eu
+if (set -o | grep -q pipefail) 2>/dev/null; then
+    set -o pipefail
+fi
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../../../" && pwd)"
