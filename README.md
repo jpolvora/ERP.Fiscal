@@ -95,6 +95,21 @@ Pack local:
 dotnet pack ERP.Fiscal.slnx -c Release -o ./artifacts/packages
 ```
 
+### Smoke test (pacotes do GitHub Packages)
+
+Projeto minimalista em [`samples/ERP.Fiscal.PackageSmokeTest`](samples/ERP.Fiscal.PackageSmokeTest) que referencia `ERP.Fiscal.*` via NuGet (feed GitHub Packages), sem project reference ao código-fonte.
+
+Autenticação local (PAT com `read:packages`):
+
+```bash
+dotnet nuget add source https://nuget.pkg.github.com/jpolvora/index.json \
+  --name github --username SEU_USUARIO --password SEU_PAT --store-password-in-clear-text
+
+dotnet test samples/ERP.Fiscal.PackageSmokeTest/ERP.Fiscal.PackageSmokeTest.csproj -c Release
+```
+
+O job `package-smoke-test` no CI valida o consumo após cada push em `main`.
+
 ## Licença
 
 [MIT](LICENSE)

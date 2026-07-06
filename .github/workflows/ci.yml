@@ -12,14 +12,19 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
+  GITHUB_PACKAGES_SOURCE: https://nuget.pkg.github.com/jpolvora/index.json
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    outputs:
+      package_version: ${{ steps.version.outputs.package_version }}
 
     steps:
       - name: Checkout
@@ -78,6 +83,14 @@ jobs:
           path: '**/test-results.trx'
           if-no-files-found: ignore
 
+      - name: Publish to GitHub Packages
+        if: github.event_name == 'push'
+        run: >
+          dotnet nuget push "${{ runner.temp }}/packages/*.nupkg"
+          --source "${{ env.GITHUB_PACKAGES_SOURCE }}"
+          --api-key "${{ secrets.GITHUB_TOKEN }}"
+          --skip-duplicate
+
       - name: Publish to NuGet.org
         if: startsWith(github.ref, 'refs/tags/v') && github.event_name == 'push'
         run: >
@@ -85,3 +98,36 @@ jobs:
           --api-key "${{ secrets.NUGET_API_KEY }}"
           --source https://api.nuget.org/v3/index.json
           --skip-duplicate
+
+  package-smoke-test:
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Authenticate GitHub Packages
+        run: >
+          dotnet nuget add source "${{ env.GITHUB_PACKAGES_SOURCE }}"
+          --name github
+          --username "${{ github.repository_owner }}"
+          --password "${{ secrets.GITHUB_TOKEN }}"
+          --store-password-in-clear-text
+
+      - name: Run package smoke test
+        working-directory: samples/ERP.Fiscal.PackageSmokeTest
+        run: >
+          dotnet test
+          --configuration Release
+          -p:ErpFiscalPackageVersion=${{ needs.build.outputs.package_version }}
