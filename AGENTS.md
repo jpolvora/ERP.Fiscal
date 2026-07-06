@@ -228,7 +228,7 @@ Pipeline CI em [`.github/workflows/cursor-code-review.yml`](.github/workflows/cu
 
 **Gatilhos:** workflow `cursor-code-review.yml` em PRs para `main`; ou pipeline ADO `azure-pipelines-cursor-code-review.yml` (Build Validation).
 
-**Pré-requisitos GitHub:** secret `CURSOR_API_KEY` em Settings → Secrets and variables → Actions. O workflow usa `GITHUB_TOKEN` com `pull-requests: write` para publicar threads.
+**Pré-requisitos GitHub:** secret `CURSOR_API_KEY` em Settings → Secrets and variables → Actions. O workflow usa `GITHUB_TOKEN` com `pull-requests: write` para publicar threads. No GitHub Actions, o runner exige `--source-branch` / `--target-branch` da PR (o cursor-reviewer v0.2.15 só autodetecta origem via `SYSTEM_PULLREQUEST_SOURCEBRANCH` do Azure DevOps).
 
 **Pré-requisitos ADO:** variable group com `CURSOR_API_KEY`; Build Service com *Contribute to pull requests* e *View work items*; *Allow scripts to access the OAuth token* habilitado. Detalhes: [README do cursor-reviewer](https://github.com/jpolvora/cursor-reviewer#-integração-em-cicd).
 
