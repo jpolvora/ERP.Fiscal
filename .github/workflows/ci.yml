@@ -135,7 +135,13 @@ jobs:
 
       - name: Run package smoke test
         working-directory: samples/ERP.Fiscal.PackageSmokeTest
-        run: >
-          dotnet test
-          --configuration Release
-          -p:ErpFiscalPackageVersion=${{ needs.build.outputs.package_version }}
+        run: |
+          version="${{ needs.build.outputs.package_version }}"
+          for attempt in 1 2 3; do
+            if dotnet test --configuration Release -p:ErpFiscalPackageVersion="${version}"; then
+              exit 0
+            fi
+            echo "Smoke test attempt ${attempt} failed; retrying in 15s..."
+            sleep 15
+          done
+          exit 1

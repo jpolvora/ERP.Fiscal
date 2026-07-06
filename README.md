@@ -214,6 +214,8 @@ steps:
 
 Se o consumidor estiver em **outra org/conta**, o PAT precisa de acesso de leitura aos pacotes de `jpolvora` (pacote público no GitHub Packages ainda exige auth).
 
+**Azure DevOps:** [`docs/consumers/azure-devops.md`](docs/consumers/azure-devops.md).
+
 ### 7. Alternativa: nuget.org (releases com tag)
 
 Após tag `v1.0.0`, se `NUGET_API_KEY` estiver configurado neste repositório, os pacotes também aparecem em:

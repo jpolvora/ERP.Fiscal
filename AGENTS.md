@@ -159,7 +159,11 @@ Configuração (`appsettings.json`):
 }
 ```
 
-Referência de projeto (dev) ou `PackageReference` (NuGet, pós-estabilização). O ERP injeta `INfeEmissaoProvider` etc. e implementa `INfeAmbientePolicy` localmente.
+**Produção e consumidores (ex.: FiscalWR):** `PackageReference` via GitHub Packages — feed `https://nuget.pkg.github.com/jpolvora/index.json`, IDs `ERP.Fiscal.Abstractions` e `ERP.Fiscal.PlugNotas`. Ver [README.md](README.md#consumir-via-github-packages) e [`docs/consumers/azure-devops.md`](docs/consumers/azure-devops.md).
+
+**Desenvolvimento desta lib:** `dotnet pack` local ou `ProjectReference` no clone deste repositório.
+
+O ERP injeta `INfeEmissaoProvider` etc. e implementa `INfeAmbientePolicy` localmente.
 
 ---
 
