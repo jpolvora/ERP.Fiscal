@@ -1,0 +1,59 @@
+# Code review agêntico — Cursor Reviewer (execução remota)
+# Review-only: publica threads na PR; exit 0 mesmo com issues (exit 1 só em erro de sistema).
+#
+# Não embute o código do cursor-reviewer neste repositório.
+# Baixa run.sh (GitHub) que clona a branch `release` do reviewer e executa no contexto deste repo.
+#
+# Documentação: https://github.com/jpolvora/cursor-reviewer (README.md)
+#
+# Pré-requisitos no GitHub:
+#   1. Secret CURSOR_API_KEY (Settings → Secrets and variables → Actions).
+#   2. Workflow com permissions pull-requests: write (GITHUB_TOKEN para publicar threads).
+#
+# Variáveis opcionais (repository variables / env):
+#   CURSOR_REVIEWER_TARGET_BRANCH (default: refs/heads/main)
+#   CURSOR_REVIEWER_MODEL         (default: composer-2.5)
+#   CURSOR_REVIEWER_STACK           (default: autodetect; ERP.Fiscal = .NET/ABP via .slnx)
+
+name: Cursor Code Review
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.x
+
+      - name: Verify Node.js / npm
+        run: |
+          set -euo pipefail
+          echo "Node: $(node -v)"
+          echo "npm:  $(npm -v)"
+
+      - name: Run Cursor Reviewer Agent (remoto)
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CURSOR_REVIEWER_TARGET_BRANCH: ${{ vars.CURSOR_REVIEWER_TARGET_BRANCH }}
+          CURSOR_REVIEWER_MODEL: ${{ vars.CURSOR_REVIEWER_MODEL }}
+          CURSOR_REVIEWER_STACK: ${{ vars.CURSOR_REVIEWER_STACK }}
+        run: |
+          set -euo pipefail
+          curl -fsSL https://raw.githubusercontent.com/jpolvora/cursor-reviewer/main/run.sh | bash -s -- --gh --pr-id ${{ github.event.pull_request.number }}

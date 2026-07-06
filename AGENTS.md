@@ -218,6 +218,42 @@ Antes de concluir alterações:
 
 ---
 
+## Cursor Reviewer (code review agêntico em PR)
+
+Pipeline CI em [`.github/workflows/cursor-code-review.yml`](.github/workflows/cursor-code-review.yml) (GitHub Actions) e, opcionalmente, [`azure-pipelines-cursor-code-review.yml`](azure-pipelines-cursor-code-review.yml) (Azure DevOps) — execução **remota** via `run.sh` (repositório [cursor-reviewer](https://github.com/jpolvora/cursor-reviewer)); **não há** subprojeto local em `scripts/cursor-reviewer/`. **Não confundir** com a **skill** interna [`.agents/skills/code-review/SKILL.md`](.agents/skills/code-review/SKILL.md) (pré-push / simulação local).
+
+**Gatilhos:** workflow `cursor-code-review.yml` em PRs para `main`; ou pipeline ADO `azure-pipelines-cursor-code-review.yml` (Build Validation).
+
+**Pré-requisitos GitHub:** secret `CURSOR_API_KEY` em Settings → Secrets and variables → Actions. O workflow usa `GITHUB_TOKEN` com `pull-requests: write` para publicar threads.
+
+**Pré-requisitos ADO:** variable group com `CURSOR_API_KEY`; Build Service com *Contribute to pull requests* e *View work items*; *Allow scripts to access the OAuth token* habilitado. Detalhes: [README do cursor-reviewer](https://github.com/jpolvora/cursor-reviewer#-integração-em-cicd).
+
+### Dry-run local (`cursor-reviewer`)
+
+Quando o usuário pedir para simular o review localmente, usar o runner remoto `run.sh` do repositório público `cursor-reviewer`; **não** procurar um subprojeto local neste repo.
+
+**Pré-requisitos validados:**
+
+- `CURSOR_API_KEY` disponível no ambiente do shell atual (em Windows, confirmar com `echo "CURSOR_API_KEY set: ${CURSOR_API_KEY:+yes}"`).
+- Node.js `22.13+`.
+- Repositório Git com a branch alvo disponível localmente/remotamente (default: `refs/heads/main` / `origin/main`).
+
+**Comando recomendado:**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/jpolvora/cursor-reviewer/main/run.sh | bash -s -- --dry-run --verbose --target-branch refs/heads/main
+```
+
+**Comportamento observado:**
+
+- O runner clona a branch `release` do `cursor-reviewer` em `.tmp-cursor-reviewer`, executa `npm ci --omit=dev`, roda `node dist/index.js` apontando para o repo atual e limpa a pasta temporária ao final.
+- Em modo local, o diff usado é `main...HEAD` da branch atual; para incluir mudanças não commitadas, acrescentar `--include-uncommitted`.
+- A stack do ERP.Fiscal é autodetectada como **.NET/ABP** (`.slnx`, `.csproj`); o runner também lê `AGENTS.md` e regras em `.cursor/rules/` quando existirem.
+- `--dry-run` não publica threads reais; imprime o JSON/previews do que seria publicado.
+- Mesmo com findings, a execução termina com `exit 0`; considerar o resumo final do reviewer, não apenas o código de saída.
+
+---
+
 ## Referências
 
 - [`docs/README.md`](docs/README.md) — **índice** da documentação PlugNotas compilada (carregar sob demanda)

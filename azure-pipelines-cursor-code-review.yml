@@ -1,0 +1,60 @@
+# Pipeline de Code Review agêntico — Cursor Reviewer (execução remota)
+# Review-only: publica threads na PR; exit 0 mesmo com issues (exit 1 só em erro).
+#
+# Este pipeline NÃO embute o código do cursor-reviewer no repositório.
+# Ele baixa o run.sh público (GitHub) que clona a branch `release` do reviewer,
+# instala apenas dependências de runtime e executa o agente no contexto deste repo.
+#
+# Documentação: https://github.com/jpolvora/cursor-reviewer (README.md)
+#
+# Pré-requisitos no Azure DevOps:
+#   1. CURSOR_API_KEY disponível como secret (variable group da Library OU variável da pipeline).
+#   2. Build Service com "Contribute to pull requests" = Allow e "View work items" = Allow.
+#   3. Pipeline Settings -> "Allow scripts to access the OAuth token" habilitado.
+#   4. Branch policy de Build Validation apontando para este YAML.
+#
+# Variáveis opcionais (variable group / pipeline):
+#   CURSOR_REVIEWER_TARGET_BRANCH (default: refs/heads/main)
+#   CURSOR_REVIEWER_MODEL         (default: composer-2.5)
+#   CURSOR_REVIEWER_STACK           (default: autodetect; ERP.Fiscal = .NET/ABP via .slnx)
+#
+# Se CURSOR_API_KEY estiver num variable group da Library, descomente o bloco abaixo
+# e ajuste o nome do grupo:
+# variables:
+# - group: vg-cursor-reviewer
+
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+- job: CursorCodeReview
+  displayName: 'Cursor Agent Code Review'
+  steps:
+  - checkout: self
+    fetchDepth: 0              # histórico completo: merge-base do diff three-dot (origin/target...origin/source)
+    persistCredentials: true  # o runner faz git fetch das refs source/target em CI
+
+  - task: NodeTool@0
+    displayName: 'Install Node.js 22.13+ (@cursor/sdk)'
+    inputs:
+      versionSpec: '22.13.x'
+
+  - script: |
+      set -euo pipefail
+      echo "Node: $(node -v)"
+      echo "npm:  $(npm -v)"
+    displayName: 'Verify Node.js / npm'
+
+  - script: |
+      set -euo pipefail
+      curl -fsSL https://raw.githubusercontent.com/jpolvora/cursor-reviewer/main/run.sh | bash -s -- --ado
+    displayName: 'Run Cursor Reviewer Agent (remoto)'
+    workingDirectory: $(Build.SourcesDirectory)
+    env:
+      CURSOR_API_KEY: $(CURSOR_API_KEY)
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+      CURSOR_REVIEWER_TARGET_BRANCH: $(CURSOR_REVIEWER_TARGET_BRANCH)
+      CURSOR_REVIEWER_MODEL: $(CURSOR_REVIEWER_MODEL)
+      CURSOR_REVIEWER_STACK: $(CURSOR_REVIEWER_STACK)

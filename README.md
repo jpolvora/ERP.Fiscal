@@ -289,6 +289,8 @@ Workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
 
 Artefatos `.nupkg` / `.snupkg` disponíveis em **Actions → Artifacts** de cada run.
 
+**Code review agêntico em PR:** workflow [`.github/workflows/cursor-code-review.yml`](.github/workflows/cursor-code-review.yml) — [cursor-reviewer](https://github.com/jpolvora/cursor-reviewer) via `run.sh` remoto (review-only, publica threads na PR). Requer secret `CURSOR_API_KEY`. Dry-run local e detalhes: [`AGENTS.md`](AGENTS.md#cursor-reviewer-code-review-agêntico-em-pr).
+
 ---
 
 ## Documentação
