@@ -1,10 +1,9 @@
-trigger:
-  branches:
-    include:
-      - master
+# DEPRECATED — use .github/workflows/ci.yml (build, test, pack, publish GitHub Packages).
+# Mantido apenas para validação rápida em Azure DevOps, se necessário.
+trigger: none
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'ubuntu-latest'
 
 steps:
   - task: UseDotNet@2

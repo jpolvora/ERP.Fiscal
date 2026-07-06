@@ -65,6 +65,16 @@ https://nuget.pkg.github.com/jpolvora/index.json
 
 > Pacotes NuGet no GitHub **exigem autenticação** no restore, mesmo quando o repositório é público.
 
+### Visibilidade do pacote
+
+Pacotes publicados pelo CI deste repositório (via `GITHUB_TOKEN`) ficam vinculados ao owner **`jpolvora`** e herdam a visibilidade do repositório fonte.
+
+| Cenário | O que fazer |
+|---------|-------------|
+| Consumidor na **mesma conta** (`jpolvora`) | `GITHUB_TOKEN` em Actions ou PAT com `read:packages` |
+| Consumidor em **outra org/conta** | PAT com `read:packages` (e `repo` se o pacote for privado) com acesso de leitura aos pacotes de `jpolvora` |
+| Repo público, pacote público | Auth **ainda é obrigatória** no `dotnet restore` |
+
 ### 1. Autenticação (máquina de desenvolvimento)
 
 Crie um [Personal Access Token](https://github.com/settings/tokens) (classic) com escopo **`read:packages`**. Se o repositório for privado, inclua também **`repo`**.
