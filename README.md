@@ -76,3 +76,7 @@ Configuração (`appsettings.json`):
 dotnet build ERP.Fiscal.slnx
 dotnet test ERP.Fiscal.slnx
 ```
+
+## Licença
+
+[MIT](LICENSE)
