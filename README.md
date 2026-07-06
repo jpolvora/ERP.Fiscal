@@ -41,8 +41,11 @@ Pacotes publicados automaticamente no **GitHub Packages** a cada push em `main`.
 
 | Gatilho | Versão | Onde publica |
 |---------|--------|--------------|
-| Push em `main` | `0.1.0-preview.{run}` | GitHub Packages + artefato CI |
+| Merge/push em `main` | `0.1.{N}` — `N` em [`nuget.props`](nuget.props) (`PackagePatchNumber`); CI publica e incrementa após publish | GitHub Packages + artefato CI |
+| PR para `main` | `0.1.{N}-pr.{número}` (validação; não publica) | Artefato CI apenas |
 | Tag `v1.0.0` | `1.0.0` | GitHub Packages + nuget.org (se `NUGET_API_KEY` configurado) |
+
+O contador `PackagePatchNumber` é commitado automaticamente na `main` após cada publicação bem-sucedida (`chore: bump package version … [skip ci]`).
 
 ---
 
@@ -131,15 +134,15 @@ No módulo **Application** (ou host) do seu ERP ABP:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="ERP.Fiscal.Abstractions" Version="0.1.0-*" />
-  <PackageReference Include="ERP.Fiscal.PlugNotas" Version="0.1.0-*" />
+  <PackageReference Include="ERP.Fiscal.Abstractions" Version="0.1.*" />
+  <PackageReference Include="ERP.Fiscal.PlugNotas" Version="0.1.*" />
 </ItemGroup>
 ```
 
 | Versão | Quando usar |
 |--------|-------------|
-| `0.1.0-*` | Último preview de `main` (floating) |
-| `0.1.0-preview.42` | Preview específico (número do workflow run) |
+| `0.1.*` | Última versão `0.1.x` de `main` (floating) |
+| `0.1.42` | Versão específica (`PackagePatchNumber` no merge que gerou o pacote) |
 | `1.0.0` | Release estável (tag `v1.0.0`) |
 
 Restore:
@@ -285,8 +288,8 @@ dotnet pack ERP.Fiscal.slnx -c Release -o ./artifacts/packages
 
 Workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
 
-1. **build** — restore, build, test, pack
-2. **Publish** — GitHub Packages (push); nuget.org (tag `v*`)
+1. **build** — resolve versão (`nuget.props` ou tag), restore, build, test, pack, publish
+2. **bump** — após publish em `main`, incrementa `PackagePatchNumber` em `nuget.props` e commita `[skip ci]`
 3. **package-smoke-test** — restaura pacotes do GitHub e executa o sample
 
 Artefatos `.nupkg` / `.snupkg` disponíveis em **Actions → Artifacts** de cada run.

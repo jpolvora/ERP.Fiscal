@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <IsPackable>false</IsPackable>
-    <ErpFiscalPackageVersion Condition="'$(ErpFiscalPackageVersion)' == ''">0.1.0-*</ErpFiscalPackageVersion>
+    <ErpFiscalPackageVersion Condition="'$(ErpFiscalPackageVersion)' == ''">0.1.*</ErpFiscalPackageVersion>
   </PropertyGroup>
 
   <ItemGroup>

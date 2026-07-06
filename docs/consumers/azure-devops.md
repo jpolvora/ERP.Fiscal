@@ -101,8 +101,8 @@ Passe credenciais como build-args e autentique **dentro** do estágio `build` do
 
 | Cenário | `ErpFiscalPackageVersion` |
 |---------|---------------------------|
-| CI reprodutível | Pin fixo, ex.: `0.1.0-preview.42` |
-| Dev local | `0.1.0-*` (último preview de `main`) |
+| CI reprodutível | Pin fixo, ex.: `0.1.42` |
+| Dev local | `0.1.*` (última versão de `main`) |
 | Release estável | `1.0.0` (tag `v1.0.0` no repo ERP.Fiscal) |
 
 Sample: [`samples/erp-fiscal-version.props`](../../samples/erp-fiscal-version.props).

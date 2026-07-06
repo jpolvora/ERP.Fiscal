@@ -4,10 +4,10 @@
       <Import Project="erp-fiscal-version.props" Condition="Exists('erp-fiscal-version.props')" />
 
     CI: pin versão fixa (reprodutível).
-    Dev: use 0.1.0-* para último preview de main.
+    Dev: use 0.1.* para última versão de main.
   -->
   <PropertyGroup>
-    <ErpFiscalPackageVersion>0.1.0-*</ErpFiscalPackageVersion>
-    <!-- Exemplo pinado para CI: <ErpFiscalPackageVersion>0.1.0-preview.42</ErpFiscalPackageVersion> -->
+    <ErpFiscalPackageVersion>0.1.*</ErpFiscalPackageVersion>
+    <!-- Exemplo pinado para CI: <ErpFiscalPackageVersion>0.1.42</ErpFiscalPackageVersion> -->
   </PropertyGroup>
 </Project>
