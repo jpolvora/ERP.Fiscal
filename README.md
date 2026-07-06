@@ -342,6 +342,7 @@ dotnet pack ERP.Fiscal.slnx -c Release -o ./artifacts/packages
 | Mapeamento lib ↔ API | [`docs/plugnotas/07-mapeamento-erp-fiscal.md`](docs/plugnotas/07-mapeamento-erp-fiscal.md) |
 | Swagger PlugNotas (canônico) | [docs.plugnotas.com.br](https://docs.plugnotas.com.br) |
 | Instruções para agentes IA | [`AGENTS.md`](AGENTS.md) |
+| Padrão de integração nos consumidores | [`docs/consumers/padrao-integracao.md`](docs/consumers/padrao-integracao.md) |
 | Skill: Consumo em ERPs | [`.agents/skills/erp-fiscal-consumer/SKILL.md`](.agents/skills/erp-fiscal-consumer/SKILL.md) |
 
 ---

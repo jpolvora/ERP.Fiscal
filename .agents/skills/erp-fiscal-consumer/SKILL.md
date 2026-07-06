@@ -142,6 +142,10 @@ Fluxo canônico de transmissão:
 
 Não chamar `PlugNotasNfePayloadAmbienteHelper` manualmente antes de `EmitirCompletoAsync`.
 
+### F. Mensagens de erro (`NfeEmissaoMensagemHelper`)
+
+Use `NfeEmissaoMensagemHelper.MontarMensagemErro` para compor mensagens técnicas a partir de `NfeEmissaoResult`/`NfeProcessamentoResult`, passando strings localizadas do ERP (transiente, permanente, ação). A lib não conhece chaves `Nfe:*` — só concatena e limita tamanho.
+
 Documentação completa: [`docs/consumers/padrao-integracao.md`](../../docs/consumers/padrao-integracao.md) (no repositório ERP.Fiscal).
 
 ### E. Exemplo legado de policy customizada
