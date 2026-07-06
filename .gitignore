@@ -9,16 +9,18 @@ obj/
 *.p12
 *.pem
 *.key
-appsettings.*.json
 appsettings.local.json
+appsettings.*.local.json
 .env
 .env.*
+!.env.example
+!.env.template
 secrets.json
 **/secrets/
 
 # IDE / local tooling
 .cursor/
-.agents/
+!.cursor/rules/
 .idea/
 *.suo
 *.userosscache
