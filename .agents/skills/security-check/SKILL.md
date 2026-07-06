@@ -16,6 +16,7 @@ Esta skill descreve as regras e procedimentos de segurança obrigatórios para g
 - **Certificados e Chaves Privadas:** Arquivos com extensões `.pfx`, `.p12`, `.pem`, `.key`, `.der`.
 - **Configurações Locais com Segredos:** Arquivos como `appsettings.local.json`, `secrets.json`, `.env` ou `.env.local` que contenham dados de teste reais ou de produção.
 - **Dados Pessoais ou de Clientes reais (PII):** CPF, CNPJ reais de produção, nomes, e-mails privados ou payloads com dados reais em fixtures de teste. Use dados mockados / geradores de dados para testes.
+- **Planos e Referências a Consumidores Privados:** Arquivos de planos de implementação (`implementation_plan.md`, `task.md`, `walkthrough.md`) ou mensagens de commit que citem explicitamente projetos privados ou ERPs consumidores específicos (ex.: `FiscalWR`). Planos que detalham a integração de um consumidor específico devem permanecer locais nos artifacts temporários ou ser limpos antes de qualquer commit. Apenas planos de alteração genéricos/neutros do próprio core do `ERP.Fiscal` podem ser versionados, se necessário.
 
 ---
 
@@ -67,4 +68,5 @@ Antes de encerrar o turno ou propor um commit, responda mentalmente ou liste as 
 - [ ] Há chaves de API literais (hardcoded) no código? (Devem ser configuradas via `PlugNotasOptions` ou injeção/configuração).
 - [ ] Adicionei algum arquivo `.pfx`, `.pem`, ou `.key` ao repositório git? (Devem estar listados no `.gitignore`).
 - [ ] Usei CNPJ, CPF ou dados reais de produção para rodar testes? (Utilizar dados de teste/sandbox fictícios).
+- [ ] Os arquivos de plano (`implementation_plan.md`, `task.md`) ou commits contêm menções a consumidores ou ERPs privados específicos (ex.: `FiscalWR`)? (Remover ou ignorar estes arquivos do commit, mantendo apenas documentação genérica/neutra do `ERP.Fiscal`).
 - [ ] O `git status` mostra apenas arquivos esperados e seguros?
