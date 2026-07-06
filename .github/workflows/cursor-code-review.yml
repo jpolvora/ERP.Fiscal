@@ -52,9 +52,9 @@ jobs:
           git fetch origin main:refs/remotes/origin/main
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 22.13.x
+          node-version: 24.x
 
       - name: Verify Node.js / npm
         run: |

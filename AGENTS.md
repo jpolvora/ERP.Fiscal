@@ -239,7 +239,7 @@ Quando o usuário pedir para simular o review localmente, usar o runner remoto `
 **Pré-requisitos validados:**
 
 - `CURSOR_API_KEY` disponível no ambiente do shell atual (em Windows, confirmar com `echo "CURSOR_API_KEY set: ${CURSOR_API_KEY:+yes}"`).
-- Node.js `22.13+`.
+- Node.js `22.13+` (CI GitHub Actions usa `24.x`; localmente qualquer LTS ≥ 22.13).
 - Repositório Git com a branch alvo disponível localmente/remotamente (default: `refs/heads/main` / `origin/main`).
 
 **Comando recomendado:**
