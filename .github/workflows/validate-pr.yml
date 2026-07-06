@@ -82,6 +82,5 @@ jobs:
           </configuration>
           EOF
           export NUGET_PACKAGES="${RUNNER_TEMP}/global-packages"
-          dotnet test --configuration Release \
-            --configfile "${CONFIG}" \
-            -p:ErpFiscalPackageVersion="${SMOKE_PACKAGE_VERSION}"
+          dotnet restore --configfile "${CONFIG}" -p:ErpFiscalPackageVersion="${SMOKE_PACKAGE_VERSION}"
+          dotnet test --configuration Release --no-restore -p:ErpFiscalPackageVersion="${SMOKE_PACKAGE_VERSION}"
