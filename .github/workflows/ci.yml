@@ -19,9 +19,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # permissions não aceita expressões com github.* — write é seguro: pack/publish/bump têm `if` próprio
     permissions:
-      contents: ${{ github.event_name == 'pull_request' && 'read' || 'write' }}
-      packages: ${{ github.event_name == 'pull_request' && 'read' || 'write' }}
+      contents: write
+      packages: write
 
     outputs:
       package_version: ${{ steps.version.outputs.package_version }}
