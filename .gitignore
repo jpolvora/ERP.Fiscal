@@ -32,3 +32,4 @@ TestResults/
 # NuGet
 *.nupkg
 packages/
+artifacts/

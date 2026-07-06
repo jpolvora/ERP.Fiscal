@@ -1,9 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\common.props" />
+  <Import Project="..\..\nuget.props" />
 
   <PropertyGroup>
     <RootNamespace>ERP.Fiscal.PlugNotas</RootNamespace>
+    <PackageId>ERP.Fiscal.PlugNotas</PackageId>
     <Description>Implementação PlugNotas (HTTP, contratos, parsers, providers) das abstrações ERP.Fiscal — plugável via módulo ABP.</Description>
   </PropertyGroup>
 

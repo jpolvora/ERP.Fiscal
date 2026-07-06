@@ -77,6 +77,24 @@ dotnet build ERP.Fiscal.slnx
 dotnet test ERP.Fiscal.slnx
 ```
 
+### Pacotes NuGet
+
+O workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml) gera dois pacotes a cada build:
+
+| Pacote | Descrição |
+|--------|-----------|
+| `ERP.Fiscal.Abstractions` | Interfaces e DTOs neutros |
+| `ERP.Fiscal.PlugNotas` | Implementação PlugNotas (ABP) |
+
+- **Push em `main`:** artefatos `0.1.0-preview.{run}` (download em Actions → Artifacts).
+- **Tag `v*`** (ex.: `v1.0.0`): mesma versão no pack; publicação em [nuget.org](https://www.nuget.org) se o secret `NUGET_API_KEY` estiver configurado no repositório.
+
+Pack local:
+
+```bash
+dotnet pack ERP.Fiscal.slnx -c Release -o ./artifacts/packages
+```
+
 ## Licença
 
 [MIT](LICENSE)

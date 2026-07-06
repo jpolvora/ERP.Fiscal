@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Resolve package version
+        id: version
+        shell: bash
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+            echo "package_version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          else
+            echo "package_version=0.1.0-preview.${GITHUB_RUN_NUMBER}" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Restore
+        run: dotnet restore ERP.Fiscal.slnx
+
+      - name: Build
+        run: dotnet build ERP.Fiscal.slnx --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test ERP.Fiscal.slnx --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
+
+      - name: Pack
+        run: >
+          dotnet pack ERP.Fiscal.slnx
+          --configuration Release
+          --no-build
+          --output "${{ runner.temp }}/packages"
+          -p:PackageVersion=${{ steps.version.outputs.package_version }}
+          -p:ContinuousIntegrationBuild=true
+
+      - name: Upload NuGet packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages-${{ steps.version.outputs.package_version }}
+          path: |
+            ${{ runner.temp }}/packages/*.nupkg
+            ${{ runner.temp }}/packages/*.snupkg
+          if-no-files-found: error
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: '**/test-results.trx'
+          if-no-files-found: ignore
+
+      - name: Publish to NuGet.org
+        if: startsWith(github.ref, 'refs/tags/v') && github.event_name == 'push'
+        run: >
+          dotnet nuget push "${{ runner.temp }}/packages/*.nupkg"
+          --api-key "${{ secrets.NUGET_API_KEY }}"
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
