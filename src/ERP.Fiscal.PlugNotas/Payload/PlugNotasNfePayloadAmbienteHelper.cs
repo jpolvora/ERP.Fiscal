@@ -20,6 +20,8 @@ public static class PlugNotasNfePayloadAmbienteHelper
     private const string IntermediadorSemMarketplace = "0";
 
     /// <summary>Injeta <c>config.producao</c> em cada documento do array.</summary>
+    /// <param name="payloadJson">JSON do POST <c>/nfe</c> (array na raiz, um documento por elemento).</param>
+    /// <param name="ambiente">Ambiente efetivo; <see cref="NfeAmbiente.Producao"/> define <c>config.producao</c> como <c>true</c>.</param>
     /// <param name="logger">Opcional. Recomendado em produção: registra raiz inesperada (não-array) sem mascarar erros de parse.</param>
     /// <exception cref="JsonException">JSON inválido onde o parse exige documento (não engolido).</exception>
     public static string AplicarProducaoNoPayloadJson(string payloadJson, NfeAmbiente ambiente, ILogger? logger = null)
