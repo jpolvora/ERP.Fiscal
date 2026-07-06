@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\common.props" />
+
+  <PropertyGroup>
+    <RootNamespace>ERP.Fiscal.Abstractions</RootNamespace>
+    <Description>Abstrações provider-agnósticas de emissão, integração e ambiente fiscal (NF-e), reutilizáveis entre ERPs ABP.</Description>
+  </PropertyGroup>
+
+</Project>

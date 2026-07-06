@@ -1,0 +1,34 @@
+# Build
+bin/
+obj/
+*.user
+.vs/
+
+# Secrets & credentials
+*.pfx
+*.p12
+*.pem
+*.key
+appsettings.*.json
+appsettings.local.json
+.env
+.env.*
+secrets.json
+**/secrets/
+
+# IDE / local tooling
+.cursor/
+.agents/
+.idea/
+*.suo
+*.userosscache
+
+# Test artifacts
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# NuGet
+*.nupkg
+packages/

@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ERP.Fiscal.Abstractions/ERP.Fiscal.Abstractions.csproj" />
+    <Project Path="src/ERP.Fiscal.PlugNotas/ERP.Fiscal.PlugNotas.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/ERP.Fiscal.PlugNotas.Tests/ERP.Fiscal.PlugNotas.Tests.csproj" />
+  </Folder>
+</Solution>
