@@ -1,8 +1,12 @@
-# Consumir ERP.Fiscal via GitHub Packages — Azure DevOps
+# Consumir ERP.Fiscal — Azure DevOps
 
-Guia para pipelines **Azure DevOps** que restauram `ERP.Fiscal.Abstractions` e `ERP.Fiscal.PlugNotas` do feed NuGet do GitHub.
+Guia para pipelines **Azure DevOps** que restauram `ERP.Fiscal.Abstractions` e `ERP.Fiscal.PlugNotas`.
 
-## Feed (por owner, não por repositório)
+> **Releases públicas (recomendado):** use [nuget.org](https://www.nuget.org) — ex. [Abstractions 0.1.3](https://www.nuget.org/packages/ERP.Fiscal.Abstractions/0.1.3), [PlugNotas 0.1.3](https://www.nuget.org/packages/ERP.Fiscal.PlugNotas/0.1.3). **Sem auth** no `dotnet restore`. Basta `PackageReference` + feed padrão `nuget.org`.
+>
+> As seções abaixo aplicam-se quando o consumidor precisa do feed **GitHub Packages** (previews ou antes da validação no nuget.org).
+
+## GitHub Packages — feed (por owner, não por repositório)
 
 ```text
 https://nuget.pkg.github.com/jpolvora/index.json
