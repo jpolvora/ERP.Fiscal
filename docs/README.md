@@ -1,6 +1,8 @@
 # Documentação — ERP.Fiscal
 
 > **Progressive disclosure:** este arquivo é o **único ponto de entrada** para agentes de IA. Carregue apenas o documento indicado pelo contexto da tarefa — não leia tudo de uma vez.
+>
+> **Última verificação:** 2026-07-06 — fonte [docs.plugnotas.com.br](https://docs.plugnotas.com.br). Manutenção: skill [sync-plugnotas-docs](../.agents/skills/sync-plugnotas-docs/SKILL.md).
 
 Biblioteca compartilhada de integração fiscal via **PlugNotas** (TecnoSpeed). Stack: ABP (.NET 10), backend-only.
 
@@ -18,6 +20,7 @@ Biblioteca compartilhada de integração fiscal via **PlugNotas** (TecnoSpeed). 
 | Rotas HTTP NF-e (POST/GET, cancelamento, XML/PDF) | [`plugnotas/05-nfe-endpoints.md`](plugnotas/05-nfe-endpoints.md) |
 | Montar payload JSON NF-e (builder no ERP) | [`plugnotas/06-nfe-payload-json.md`](plugnotas/06-nfe-payload-json.md) |
 | Implementar/alterar `ERP.Fiscal.PlugNotas` | [`plugnotas/07-mapeamento-erp-fiscal.md`](plugnotas/07-mapeamento-erp-fiscal.md) |
+| Consulta CNPJ/CEP (auxiliares) | [`plugnotas/08-auxiliares-cnpj-cep.md`](plugnotas/08-auxiliares-cnpj-cep.md) |
 
 ---
 
@@ -31,6 +34,7 @@ flowchart LR
   D --> E[05 Endpoints]
   E --> F[06 Payload JSON]
   F --> G[07 Lib ERP.Fiscal]
+  G --> H[08 Auxiliares]
 ```
 
 Pré-requisito PlugNotas antes da primeira NF-e: **certificado cadastrado** → **empresa cadastrada com NF-e ativo** → **POST /nfe**.
@@ -46,7 +50,7 @@ Pré-requisito PlugNotas antes da primeira NF-e: **certificado cadastrado** → 
 | Zendesk — certificado e empresa | https://atendimento.tecnospeed.com.br/hc/pt-br/articles/360055614214 | Tutorial cadastro via API |
 | Postman | https://documenter.getpostman.com/view/3720339/2sB3WpSh1R | Testes manuais e exemplos por linguagem |
 
-Estes `.md` são **compilação de referência para agentes** — extraídos da documentação oficial em jul/2026. Para campos novos ou dúvida de validação, consulte o Swagger.
+Estes `.md` são **compilação de referência para agentes** — extraídos da documentação oficial. Para campos novos ou dúvida de validação, consulte o Swagger. **Ao implementar ou corrigir integração**, use a skill [`sync-plugnotas-docs`](../.agents/skills/sync-plugnotas-docs/SKILL.md) para checar a fonte oficial e atualizar os arquivos locais.
 
 ---
 

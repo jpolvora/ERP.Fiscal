@@ -57,6 +57,8 @@ sequenceDiagram
 | `REJEITADO` | Analisar `cStat`/`mensagem`, corrigir, **novo envio** |
 | `CANCELADO` | Documento cancelado |
 
+> **Grafia do status:** a API retorna `CONCLUIDO` (sem acento). Artigos Zendesk podem usar `CONCLUÍDO` — o parser da lib compara de forma case-insensitive.
+
 ### Status SEFAZ (`cStat`) na consulta
 
 | cStat | Situação |
@@ -71,7 +73,7 @@ O parser `PlugNotasNfeConsultaRespostaParser` normaliza para `NfeSituacao` (`Aut
 
 ## Fluxo com Webhook
 
-Configure webhook na organização ou empresa (documentação PlugNotas — tag Webhook).
+Configure webhook na **organização** ou **por empresa** (`POST /empresa/{cpfCnpj}/webhook` — ver [`03-empresa-emissor.md`](03-empresa-emissor.md) e Swagger tag Webhook).
 
 - POST `/nfe` igual ao fluxo de consulta
 - PlugNotas notifica quando status é **final** (`CONCLUIDO` ou `REJEITADO`)

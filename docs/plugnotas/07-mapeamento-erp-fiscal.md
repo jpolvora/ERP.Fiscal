@@ -53,8 +53,10 @@ Registro: `PlugNotasFiscalModule` — `[DependsOn(typeof(PlugNotasFiscalModule))
 | POST `/nfe/{id}/cancelamento` | `CancelarNfeAsync` | `CancelarAsync` |
 | GET `/nfe/{id}/xml` | `ObterXmlNfePorIdAsync` | `ObterXmlAsync` |
 | GET `/nfe/{id}/pdf` | `ObterPdfNfePorIdAsync` | `ObterPdfAsync` |
+| GET `/cnpj/{cnpj}` | — (`PlugNotasAuxiliaresProvider`) | `ConsultarCnpjAsync` |
+| GET `/cep/{cep}` | — (`PlugNotasAuxiliaresProvider`) | `ConsultarCepAsync` |
 
-Cliente interno: `PlugNotasHttpClient` (não exposto fora da lib).
+Cliente interno NF-e/cadastro: `PlugNotasHttpClient`. Auxiliares: `PlugNotasAuxiliaresProvider` com `HttpClient` próprio.
 
 ---
 
@@ -151,5 +153,6 @@ Projeto: `test/ERP.Fiscal.PlugNotas.Tests/`
 | [`04-nfe-fluxo-emissao.md`](04-nfe-fluxo-emissao.md) | Fluxo assíncrono |
 | [`05-nfe-endpoints.md`](05-nfe-endpoints.md) | Rotas NF-e |
 | [`06-nfe-payload-json.md`](06-nfe-payload-json.md) | JSON emissão |
+| [`08-auxiliares-cnpj-cep.md`](08-auxiliares-cnpj-cep.md) | CNPJ/CEP auxiliares |
 
 Índice geral: [`../README.md`](../README.md).

@@ -1,6 +1,8 @@
 # PlugNotas — índice de referência para agentes
 
 > Compilação derivada de [docs.plugnotas.com.br](https://docs.plugnotas.com.br) e artigos Zendesk TecnoSpeed. **Não substitui** o Swagger para dicionário completo de campos.
+>
+> **Última verificação:** 2026-07-06 — fonte [docs.plugnotas.com.br](https://docs.plugnotas.com.br) (coleção Postman oficial + Zendesk). Skill: [sync-plugnotas-docs](../../.agents/skills/sync-plugnotas-docs/SKILL.md).
 
 ---
 
@@ -28,6 +30,7 @@ Fora de escopo aqui: NFSe, NFCe, MDFe, NFCom, webhooks (mencionados apenas onde 
 | 05 | [`05-nfe-endpoints.md`](05-nfe-endpoints.md) | Tabela de rotas NF-e + parâmetros de path |
 | 06 | [`06-nfe-payload-json.md`](06-nfe-payload-json.md) | Estrutura JSON POST `/nfe` (campos usados pelos consumidores) |
 | 07 | [`07-mapeamento-erp-fiscal.md`](07-mapeamento-erp-fiscal.md) | Interfaces, classes e parsers da lib |
+| 08 | [`08-auxiliares-cnpj-cep.md`](08-auxiliares-cnpj-cep.md) | GET `/cnpj`, `/cep` — formulários de cadastro |
 
 ---
 

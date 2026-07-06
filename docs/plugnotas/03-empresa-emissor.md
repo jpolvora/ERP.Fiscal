@@ -162,14 +162,18 @@ HTTP possíveis: 400, 401, 409.
 
 ## Outras rotas empresa (referência)
 
-| Método | Rota | Uso |
-|--------|------|-----|
-| GET | `/empresa` | Listar (paginação ~150/registro) |
-| GET | `/empresa/{cpfCnpj}` | Consultar uma empresa |
-| PATCH | `/empresa/{cpfCnpj}/config` | Alterar config (ex.: `nfe.config.producao`) |
-| PUT | `/empresa/{cpfCnpj}` | Alterar cadastro completo |
+| Método | Rota | Uso | ERP.Fiscal |
+|--------|------|-----|------------|
+| GET | `/empresa` | Listar empresas (paginação `hashProximaPagina`) | ❌ |
+| GET | `/empresa/{cpfCnpj}` | Consultar uma empresa | ✅ `ObterEmpresaAsync` |
+| PATCH | `/empresa/{cpfCnpj}` | Alterar cadastro (parcial) | ❌ |
+| PATCH | `/empresa/{cpfCnpj}/config` | Alterar config (ex.: `nfe.config.producao`) | ✅ `AtualizarConfigEmpresaAsync` |
+| DELETE | `/empresa/{cpfCnpj}/{documento}/{serie}/serie` | Remover série | ❌ |
+| POST/GET/DELETE | `/empresa/{cpfCnpj}/logotipo` | Logotipo DANFE | ❌ |
+| POST/GET/PUT/DELETE | `/empresa/{cpfCnpj}/webhook` | Webhook por empresa | ❌ |
+| POST | `/empresa/{cpfCnpj}/webhook/verify` | Testar webhook | ❌ |
 
-A lib implementa `CadastrarEmpresaAsync`, `ObterEmpresaAsync`, `AtualizarConfigEmpresaAsync` (sync ambiente produção/homologação).
+A lib implementa `CadastrarEmpresaAsync`, `ObterEmpresaAsync`, `AtualizarConfigEmpresaAsync` (sync ambiente produção/homologação). Demais rotas: Swagger / coleção Postman oficial.
 
 ---
 
