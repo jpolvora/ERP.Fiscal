@@ -1,4 +1,4 @@
-# DEPRECATED — use .github/workflows/ci.yml (build, test, pack, publish GitHub Packages).
+# DEPRECATED — use .github/workflows/deploy-main.yml (publish) and validate-pr.yml (PR validation).
 # Mantido apenas para validação rápida em Azure DevOps, se necessário.
 trigger: none
 

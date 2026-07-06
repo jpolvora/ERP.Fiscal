@@ -268,7 +268,8 @@ ERP.Fiscal/
 ├── samples/
 │   └── ERP.Fiscal.PackageSmokeTest/
 ├── docs/plugnotas/                 # documentação PlugNotas compilada
-└── .github/workflows/ci.yml
+├── .github/workflows/validate-pr.yml
+└── .github/workflows/deploy-main.yml
 ```
 
 ### Build e testes
@@ -284,13 +285,12 @@ dotnet test ERP.Fiscal.slnx
 dotnet pack ERP.Fiscal.slnx -c Release -o ./artifacts/packages
 ```
 
-### CI (este repositório)
+### CI/CD (GitHub Actions)
 
-Workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
-
-1. **PR → `main`** (`validate`) — restore, build, test, pack local, smoke test NuGet
-2. **push `main`** (`release`) — resolve versão, build, test, pack, publish GitHub Packages, bump `nuget.props`
-3. **tag `v*`** (`release`) — pack/publish versão estável (+ nuget.org se `NUGET_API_KEY`)
+1. [**Validate PR**](.github/workflows/validate-pr.yml) (`validate-pr.yml`) — executado em Pull Requests para a `main`: faz restore, build, teste unitário, pack local e executa o **Smoke Test** isolado.
+2. [**Deploy Main**](.github/workflows/deploy-main.yml) (`deploy-main.yml`) — executado em merges/pushes na `main` e tags `v*`:
+   - Em push na `main`: resolve versão, build, teste, pack, publish no GitHub Packages e faz bump de versão automático.
+   - Em tag `v*`: pack e publish da versão estável no GitHub Packages e nuget.org (se configurado).
 
 **Code review agêntico (PR → `main` only):** [`.github/workflows/cursor-code-review.yml`](.github/workflows/cursor-code-review.yml)
 
