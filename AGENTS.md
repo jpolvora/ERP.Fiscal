@@ -222,13 +222,25 @@ Antes de concluir alterações:
 
 ---
 
+## CI/CD (GitHub Actions)
+
+A esteira de integração e entrega contínua é dividida em workflows específicos sob `.github/workflows/`:
+
+- [**`validate-pr.yml`**](.github/workflows/validate-pr.yml): Executado em Pull Requests direcionados à `main`. Roda build, testes unitários e executa o **Smoke Test** de pacotes NuGet em um ambiente isolado (limpando e definindo o diretório temporário `NUGET_PACKAGES`) para evitar poluição do cache global.
+- [**`deploy-main.yml`**](.github/workflows/deploy-main.yml): Executado em pushes na branch `main` ou tags `v*`.
+  - Pushes na `main`: compila, testa, publica o pacote de desenvolvimento no GitHub Packages e realiza o **bump automático** de versão (commita e pusha com `[skip ci]`).
+  - Tags `v*`: resolve a versão correspondente à tag, compila, testa e publica os pacotes de release oficial no GitHub Packages e no NuGet.org (usando `secrets.NUGET_API_KEY`).
+- [**`cursor-code-review.yml`**](.github/workflows/cursor-code-review.yml): Executado em Pull Requests para a `main`. Roda o agente de revisão remota do **Cursor Reviewer**. Para evitar problemas de referências locais do Git no clone destacado, o workflow faz checkout da branch de origem do PR e faz fetch explícito de `main:refs/heads/main` localmente antes do diff.
+
+---
+
 ## Cursor Reviewer (code review agêntico em PR)
 
 Pipeline CI em [`.github/workflows/cursor-code-review.yml`](.github/workflows/cursor-code-review.yml) (GitHub Actions) e, opcionalmente, [`azure-pipelines-cursor-code-review.yml`](azure-pipelines-cursor-code-review.yml) (Azure DevOps) — execução **remota** via `run.sh` (repositório [cursor-reviewer](https://github.com/jpolvora/cursor-reviewer)); **não há** subprojeto local em `scripts/cursor-reviewer/`. **Não confundir** com a **skill** interna [`.agents/skills/code-review/SKILL.md`](.agents/skills/code-review/SKILL.md) (pré-push / simulação local).
 
 **Gatilhos:** workflow `cursor-code-review.yml` em PRs para `main`; ou pipeline ADO `azure-pipelines-cursor-code-review.yml` (Build Validation).
 
-**Pré-requisitos GitHub:** secret `CURSOR_API_KEY` em Settings → Secrets and variables → Actions. O workflow usa `GITHUB_TOKEN` com `pull-requests: write` para publicar threads. No GitHub Actions, o runner exige `--source-branch` / `--target-branch` da PR (o cursor-reviewer v0.2.15 só autodetecta origem via `SYSTEM_PULLREQUEST_SOURCEBRANCH` do Azure DevOps).
+**Pré-requisitos GitHub:** secret `CURSOR_API_KEY` em Settings → Secrets and variables → Actions. O workflow usa `GITHUB_TOKEN` com `pull-requests: write` para publicar threads. Para garantir o diff sem erro, o workflow do GitHub Actions faz checkout do branch de origem da PR (`ref: head.ref`) e cria o branch local `refs/heads/main` via fetch, satisfazendo a comparação de `--source-branch` e `--target-branch` passadas para o runner.
 
 **Pré-requisitos ADO:** variable group com `CURSOR_API_KEY`; Build Service com *Contribute to pull requests* e *View work items*; *Allow scripts to access the OAuth token* habilitado. Detalhes: [README do cursor-reviewer](https://github.com/jpolvora/cursor-reviewer#-integração-em-cicd).
 

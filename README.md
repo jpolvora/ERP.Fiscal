@@ -2,7 +2,18 @@
 
 Biblioteca .NET de integração fiscal (NF-e via [PlugNotas](https://docs.plugnotas.com.br)), pensada para consumo por aplicações [ABP](https://abp.io). Centraliza HTTP, parsers, retry, classificação de erros e contratos neutros — **sem acoplar domínio de ERP**.
 
-Pacotes publicados automaticamente no **GitHub Packages** a cada push em `main`. Releases com tag `v*` também podem ser publicadas no [nuget.org](https://www.nuget.org).
+Pacotes publicados automaticamente no **GitHub Packages** a cada push em `main` e no **[nuget.org](https://www.nuget.org)** (versões `0.1.x` e releases com tag `v*`).
+
+---
+
+## Links dos pacotes
+
+| Pacote | nuget.org | GitHub Packages |
+|--------|-----------|-----------------|
+| **ERP.Fiscal.Abstractions** | [nuget.org/…/0.1.3](https://www.nuget.org/packages/ERP.Fiscal.Abstractions/0.1.3) | [pkgs/nuget/ERP.Fiscal.Abstractions](https://github.com/jpolvora/ERP.Fiscal/pkgs/nuget/ERP.Fiscal.Abstractions) |
+| **ERP.Fiscal.PlugNotas** | [nuget.org/…/0.1.3](https://www.nuget.org/packages/ERP.Fiscal.PlugNotas/0.1.3) | [pkgs/nuget/ERP.Fiscal.PlugNotas](https://github.com/jpolvora/ERP.Fiscal/pkgs/nuget/ERP.Fiscal.PlugNotas) |
+
+> Última versão publicada: **0.1.3**. Novas versões `0.1.x` seguem o contador em [`nuget.props`](nuget.props) após cada merge em `main`.
 
 ---
 
@@ -32,8 +43,10 @@ Pacotes publicados automaticamente no **GitHub Packages** a cada push em `main`.
 
 | Pacote | Descrição | Dependências |
 |--------|-----------|--------------|
-| [`ERP.Fiscal.Abstractions`](https://github.com/jpolvora/ERP.Fiscal/pkgs/nuget/ERP.Fiscal.Abstractions) | Interfaces (`INfe*Provider`) e DTOs neutros | Nenhuma externa |
-| [`ERP.Fiscal.PlugNotas`](https://github.com/jpolvora/ERP.Fiscal/pkgs/nuget/ERP.Fiscal.PlugNotas) | Implementação PlugNotas + módulo ABP | `ERP.Fiscal.Abstractions`, Volo.Abp.Core, Microsoft.Extensions.Http |
+| [ERP.Fiscal.Abstractions](https://www.nuget.org/packages/ERP.Fiscal.Abstractions) | Interfaces (`INfe*Provider`) e DTOs neutros | Nenhuma externa |
+| [ERP.Fiscal.PlugNotas](https://www.nuget.org/packages/ERP.Fiscal.PlugNotas) | Implementação PlugNotas + módulo ABP | `ERP.Fiscal.Abstractions`, Volo.Abp.Core, Microsoft.Extensions.Http |
+
+Feeds: [nuget.org](https://www.nuget.org) (recomendado) ou [GitHub Packages](https://github.com/jpolvora/ERP.Fiscal/pkgs/nuget) — ver [Links dos pacotes](#links-dos-pacotes).
 
 **Target:** .NET 10 (`net10.0`)
 
@@ -42,7 +55,7 @@ Pacotes publicados automaticamente no **GitHub Packages** a cada push em `main`.
 | Gatilho | Versão | Onde publica |
 |---------|--------|--------------|
 | PR para `main` | — (pack local `0.1.{N}-pr.*` só para smoke test) | — |
-| Merge/push em `main` | `0.1.{N}` | GitHub Packages + artefato CI |
+| Merge/push em `main` | `0.1.{N}` | GitHub Packages + [nuget.org](https://www.nuget.org) + artefato CI |
 | Tag `v1.0.0` | `1.0.0` | GitHub Packages + nuget.org (se `NUGET_API_KEY` configurado) |
 
 O contador `PackagePatchNumber` é commitado automaticamente na `main` após cada publicação bem-sucedida (`chore: bump package version … [skip ci]`).
@@ -219,15 +232,22 @@ Se o consumidor estiver em **outra org/conta**, o PAT precisa de acesso de leitu
 
 **Azure DevOps:** [`docs/consumers/azure-devops.md`](docs/consumers/azure-devops.md).
 
-### 7. Alternativa: nuget.org (releases com tag)
+### 7. Alternativa: só nuget.org (sem feed GitHub)
 
-Após tag `v1.0.0`, se `NUGET_API_KEY` estiver configurado neste repositório, os pacotes também aparecem em:
+Se o consumidor não usar GitHub Packages, basta o feed público:
 
 ```text
 https://api.nuget.org/v3/index.json
 ```
 
-Nesse caso, basta `PackageReference` sem feed GitHub — apenas nuget.org.
+```xml
+<PackageReference Include="ERP.Fiscal.Abstractions" Version="0.1.3" />
+<PackageReference Include="ERP.Fiscal.PlugNotas" Version="0.1.3" />
+```
+
+Ou versão flutuante: `0.1.*` para a última `0.1.x` publicada.
+
+Páginas: [Abstractions](https://www.nuget.org/packages/ERP.Fiscal.Abstractions) · [PlugNotas](https://www.nuget.org/packages/ERP.Fiscal.PlugNotas)
 
 ---
 
