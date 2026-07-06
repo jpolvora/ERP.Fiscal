@@ -41,8 +41,8 @@ Pacotes publicados automaticamente no **GitHub Packages** a cada push em `main`.
 
 | Gatilho | Versão | Onde publica |
 |---------|--------|--------------|
-| Merge/push em `main` | `0.1.{N}` — `N` em [`nuget.props`](nuget.props) (`PackagePatchNumber`); CI publica e incrementa após publish | GitHub Packages + artefato CI |
-| PR para `main` | `0.1.{N}-pr.{número}` (validação; não publica) | Artefato CI apenas |
+| Merge/push em `main` | `0.1.{N}` — `N` em [`nuget.props`](nuget.props); CI publica e incrementa após publish | GitHub Packages + artefato CI |
+| PR para `main` | build + test apenas (sem pack/publish) | — |
 | Tag `v1.0.0` | `1.0.0` | GitHub Packages + nuget.org (se `NUGET_API_KEY` configurado) |
 
 O contador `PackagePatchNumber` é commitado automaticamente na `main` após cada publicação bem-sucedida (`chore: bump package version … [skip ci]`).
@@ -288,13 +288,11 @@ dotnet pack ERP.Fiscal.slnx -c Release -o ./artifacts/packages
 
 Workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
 
-1. **build** — resolve versão (`nuget.props` ou tag), restore, build, test, pack, publish
-2. **bump** — após publish em `main`, incrementa `PackagePatchNumber` em `nuget.props` e commita `[skip ci]`
-3. **package-smoke-test** — restaura pacotes do GitHub e executa o sample
+1. **PR → `main`** — restore, build, test (sem pack)
+2. **push `main`** — resolve versão, pack, publish GitHub Packages, bump `nuget.props`, smoke test
+3. **tag `v*`** — pack/publish versão estável (+ nuget.org se `NUGET_API_KEY`)
 
-Artefatos `.nupkg` / `.snupkg` disponíveis em **Actions → Artifacts** de cada run.
-
-**Code review agêntico em PR:** workflow [`.github/workflows/cursor-code-review.yml`](.github/workflows/cursor-code-review.yml) — [cursor-reviewer](https://github.com/jpolvora/cursor-reviewer) via `run.sh` remoto (review-only, publica threads na PR). Requer secret `CURSOR_API_KEY`. Dry-run local e detalhes: [`AGENTS.md`](AGENTS.md#cursor-reviewer-code-review-agêntico-em-pr).
+**Code review agêntico:** apenas PRs com destino `main` — [`.github/workflows/cursor-code-review.yml`](.github/workflows/cursor-code-review.yml)
 
 ---
 

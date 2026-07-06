@@ -6,6 +6,8 @@
 #
 # Documentação: https://github.com/jpolvora/cursor-reviewer (README.md)
 #
+# Gatilho: PR de qualquer branch com destino main (não roda em push direto na main).
+#
 # Pré-requisitos no GitHub:
 #   1. Secret CURSOR_API_KEY (Settings → Secrets and variables → Actions).
 #   2. Workflow com permissions pull-requests: write (GITHUB_TOKEN para publicar threads).
@@ -21,6 +23,10 @@ on:
   pull_request:
     branches:
       - main
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 permissions:
   pull-requests: write
@@ -28,6 +34,7 @@ permissions:
 
 jobs:
   review:
+    if: github.event.pull_request.base.ref == 'main'
     runs-on: ubuntu-latest
 
     steps:
