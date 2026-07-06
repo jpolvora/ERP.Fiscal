@@ -118,7 +118,33 @@ Configure as credenciais e comportamento da API no arquivo de configuração do 
 
 ### C. Implementando a Policy de Ambiente (`INfeAmbientePolicy`)
 
-O consumidor **deve** prover uma implementação para a interface `INfeAmbientePolicy` para resolver o ambiente fiscal efetivo da requisição. Exemplo de implementação:
+O consumidor **deve** prover uma implementação para a interface `INfeAmbientePolicy` para resolver o ambiente fiscal efetivo da requisição.
+
+**Padrão canônico (recomendado):** registrar `PlugNotasDefaultAmbientePolicy` da lib, que lê `PlugNotas:OnlySandbox` em appsettings:
+
+```csharp
+context.Services.AddTransient<INfeAmbientePolicy, PlugNotasDefaultAmbientePolicy>();
+```
+
+Opcionalmente, implementar `IFiscalAmbientePolicy` local para UI (`NfeAmbienteDisponibilidadeDto`) e enum `AmbienteFiscal` do domínio, delegando `INfeAmbientePolicy` à lib.
+
+**Fonte de `OnlySandbox`:** sempre `PlugNotas:OnlySandbox` em appsettings (não ABP Settings).
+
+### D. Emissão NF-e (`EmitirCompletoAsync`)
+
+Fluxo canônico de transmissão:
+
+1. Montar `payloadJson` no ERP (`NfePayloadBuilder`).
+2. Validar com `PlugNotasNfePayloadReadiness.Avaliar` (lib).
+3. `INfeAmbientePolicy.GetAmbienteEfetivoAsync`.
+4. **`INfeEmissaoProvider.EmitirCompletoAsync(payload, cnpj, idIntegracao, ambiente)`** — a lib aplica `config.producao` e faz poll SEFAZ.
+5. Persistir `NfeProcessamentoResult`.
+
+Não chamar `PlugNotasNfePayloadAmbienteHelper` manualmente antes de `EmitirCompletoAsync`.
+
+Documentação completa: [`docs/consumers/padrao-integracao.md`](../../docs/consumers/padrao-integracao.md) (no repositório ERP.Fiscal).
+
+### E. Exemplo legado de policy customizada
 
 ```csharp
 using System.Threading.Tasks;

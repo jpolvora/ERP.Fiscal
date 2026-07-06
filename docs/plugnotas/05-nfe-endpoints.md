@@ -47,7 +47,7 @@ Todas as rotas exigem header `x-api-key`.
 | Status manifestação | GET | `/nfe/{idNotaOrChave}/manifestacao/status` | Situação da manifestação | ❌ |
 | Insucesso entrega | POST | `/nfe/insucessoEntrega` | Evento assíncrono | ❌ |
 | Cancel. insucesso entrega | POST | `/nfe/cancelamentoInsucessoEntrega` | Cancelamento do evento | ❌ |
-| Notas destinadas | GET | `/nfe/destinada` | Query: `cpfCnpj`, `manifestada`, `status`, datas, paginação | ❌ |
+| Notas destinadas | GET | `/nfe/destinada` | Query: `cpfCnpj`, `manifestada`, `status`, datas, paginação | `INfeDestinadaProvider.ListarDestinadasAsync` |
 | Sync destinadas | POST | `/nfe/sincronizarDestinada/{cnpj}` | Sincronizar DF-e destinadas | ❌ |
 | Status sync destinadas | GET | `/nfe/sincronizarDestinada/{cnpj}/{chaveOrProtocol}` | Status da sincronização | ❌ |
 
@@ -100,7 +100,7 @@ Swagger documenta eventos `POST` numerados (112110, 211110, etc.) e consultas as
 
 ## Notas destinadas (DF-e)
 
-Rotas na mesma tag NF-e: `GET /nfe/destinada`, `POST /nfe/sincronizarDestinada/{cnpj}`, manifestação (`POST/GET .../manifestacao`). **Não implementadas** na lib — ver tabela acima e Swagger.
+Rotas na mesma tag NF-e: `GET /nfe/destinada` implementado em `INfeDestinadaProvider`; sync/manifestação ainda fora do escopo — ver Swagger.
 
 ---
 

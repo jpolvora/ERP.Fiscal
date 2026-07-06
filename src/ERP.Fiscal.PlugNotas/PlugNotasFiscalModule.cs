@@ -30,5 +30,6 @@ public class PlugNotasFiscalModule : AbpModule
 
         context.Services.AddTransient<INfeEmissaoProvider, PlugNotasNfeEmissaoProvider>();
         context.Services.AddTransient<INfeIntegracaoProvider, PlugNotasIntegracaoProvider>();
+        context.Services.AddTransient<INfeDestinadaProvider, PlugNotasDestinadaProvider>();
     }
 }

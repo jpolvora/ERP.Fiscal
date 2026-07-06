@@ -5,6 +5,7 @@ using ERP.Fiscal.PlugNotas.Http;
 using ERP.Fiscal.PlugNotas.Providers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace ERP.Fiscal.PlugNotas.Extensions;
 
@@ -27,7 +28,15 @@ public static class PlugNotasServiceCollectionExtensions
 
         services.AddTransient<INfeEmissaoProvider, PlugNotasNfeEmissaoProvider>();
         services.AddTransient<INfeIntegracaoProvider, PlugNotasIntegracaoProvider>();
+        services.AddTransient<INfeDestinadaProvider, PlugNotasDestinadaProvider>();
 
+        return services;
+    }
+
+    /// <summary>Registra <see cref="PlugNotasDefaultAmbientePolicy"/> se o consumidor ainda não definiu <see cref="INfeAmbientePolicy"/>.</summary>
+    public static IServiceCollection AddPlugNotasDefaultAmbientePolicy(this IServiceCollection services)
+    {
+        services.TryAddTransient<INfeAmbientePolicy, PlugNotasDefaultAmbientePolicy>();
         return services;
     }
 }

@@ -20,6 +20,7 @@ Biblioteca compartilhada de integração fiscal via **PlugNotas** (TecnoSpeed). 
 | Rotas HTTP NF-e (POST/GET, cancelamento, XML/PDF) | [`plugnotas/05-nfe-endpoints.md`](plugnotas/05-nfe-endpoints.md) |
 | Montar payload JSON NF-e (builder no ERP) | [`plugnotas/06-nfe-payload-json.md`](plugnotas/06-nfe-payload-json.md) |
 | Implementar/alterar `ERP.Fiscal.PlugNotas` | [`plugnotas/07-mapeamento-erp-fiscal.md`](plugnotas/07-mapeamento-erp-fiscal.md) |
+| Padronizar consumo em ERP consumidor (Marchante, Florestal, FiscalWR) | [`consumers/padrao-integracao.md`](consumers/padrao-integracao.md) |
 | Consulta CNPJ/CEP (auxiliares) | [`plugnotas/08-auxiliares-cnpj-cep.md`](plugnotas/08-auxiliares-cnpj-cep.md) |
 
 ---

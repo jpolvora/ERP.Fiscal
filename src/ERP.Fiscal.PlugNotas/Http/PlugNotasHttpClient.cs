@@ -160,6 +160,25 @@ internal class PlugNotasHttpClient
         }
     }
 
+    public Task<PlugNotasNfeGetRawResult> ListarNfeDestinadaAsync(
+        string baseUrl,
+        string apiToken,
+        string cpfCnpjDigits,
+        int limite,
+        bool? manifestada,
+        CancellationToken cancellationToken = default)
+    {
+        var cnpj = new string((cpfCnpjDigits ?? string.Empty).Where(char.IsDigit).ToArray());
+        var query = new List<string> { $"cpfCnpj={Uri.EscapeDataString(cnpj)}" };
+        if (limite > 0)
+            query.Add($"limite={limite}");
+        if (manifestada.HasValue)
+            query.Add($"manifestada={(manifestada.Value ? "true" : "false")}");
+
+        var url = Combine(baseUrl, $"nfe/destinada?{string.Join("&", query)}");
+        return SendNfeGetAsync(url, apiToken, cancellationToken);
+    }
+
     public async Task<PlugNotasNfeCancelamentoRawResult> CancelarNfeAsync(
         string baseUrl, string apiToken, string idDocumento, string justificativa, CancellationToken cancellationToken = default)
     {

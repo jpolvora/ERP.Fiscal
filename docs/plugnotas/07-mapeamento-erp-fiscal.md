@@ -32,7 +32,8 @@ api.plugnotas.com.br | api.sandbox.plugnotas.com.br
 | `INfeEmissaoProvider` | Emitir, consultar, cancelar, XML, PDF | `PlugNotasNfeEmissaoProvider` |
 | `INfeIntegracaoProvider` | Certificado + empresa + sync ambiente | `PlugNotasIntegracaoProvider` |
 | `INfeAuxiliaresProvider` | CNPJ, CEP | `PlugNotasAuxiliaresProvider` |
-| `INfeAmbientePolicy` | Ambiente efetivo (OnlySandbox) | **Implementar no ERP** |
+| `INfeDestinadaProvider` | NF-e destinadas (DF-e) | `PlugNotasDestinadaProvider` |
+| `INfeAmbientePolicy` | Ambiente efetivo (OnlySandbox) | **Implementar no ERP** ou `PlugNotasDefaultAmbientePolicy` |
 
 Registro: `PlugNotasFiscalModule` — `[DependsOn(typeof(PlugNotasFiscalModule))]` no módulo Application do ERP.
 
