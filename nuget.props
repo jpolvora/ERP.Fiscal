@@ -3,7 +3,7 @@
     <IsPackable>true</IsPackable>
     <VersionPrefix>0.1</VersionPrefix>
     <!-- Próxima versão patch a publicar no merge em main; CI incrementa após publish (ver scripts/ci-package-version.sh). -->
-    <PackagePatchNumber>8</PackagePatchNumber>
+    <PackagePatchNumber>9</PackagePatchNumber>
     <Version>$(VersionPrefix).$(PackagePatchNumber)</Version>
     <Authors>Jone</Authors>
     <Company>ERP.Fiscal</Company>
