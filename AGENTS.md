@@ -1,10 +1,25 @@
 # ERP.Fiscal — instruções para agentes
 
-> **Progressive disclosure:** este arquivo traz orientação universal para agentes de codificação.
-> - Documentação PlugNotas compilada (índice): [`docs/README.md`](docs/README.md) — carregar **sob demanda** o `.md` indicado pelo contexto.
-> - Visão geral do repositório: [`README.md`](README.md).
+> **Progressive disclosure:** este arquivo traz orientação universal para agentes de codificação e atua como o índice principal de regras e skills. Carregue os documentos e diretrizes adicionais **sob demanda** usando a ferramenta `view_file`.
+> 
+> - **Visão geral do repositório:** [`README.md`](README.md).
+> - **Documentação PlugNotas (API/Integração):** [`docs/README.md`](docs/README.md).
+> - **Skills e Diretrizes do Agente:** consulte o [Índice de Skills e Customizações](#skills-e-customizações-indice) abaixo.
 
 Biblioteca de integração fiscal (NF-e via **PlugNotas**), consumidor-agnóstica. Stack: **ABP Module (.NET 10)**, backend-only, **sem EF Core, sem banco, sem entidades de domínio dos consumidores**.
+
+---
+
+## Skills e Customizações (Índice)
+
+| Skill / Diretriz | Arquivo | Propósito e Contexto de Uso |
+|:---|:---|:---|
+| **code-review** | [`.agents/skills/code-review/SKILL.md`](file:///.agents/skills/code-review/SKILL.md) | Regras para execução de revisão de código local rigorosa comparando a branch atual com a principal. |
+| **karpathy-guidelines** | [`.agents/skills/karpathy-guidelines/SKILL.md`](file:///.agents/skills/karpathy-guidelines/SKILL.md) | Boas práticas de codificação para evitar alucinações e erros comuns de LLMs. |
+| **consume-erp-fiscal** | [`.agents/skills/erp-fiscal-consumer/SKILL.md`](file:///.agents/skills/erp-fiscal-consumer/SKILL.md) | **[Portável para Consumidores]** Guia de integração para ERPs que consomem esta biblioteca. Ensina a instalar/atualizar via NuGet/GitHub Packages, integrar com ABP, e gerenciar as fronteiras rígidas de código (domínio especializado local vs lógica fiscal neutra). |
+
+> [!TIP]
+> A skill **`consume-erp-fiscal`** deve ser copiada para a pasta `.agents/skills/consume-erp-fiscal/SKILL.md` no repositório de qualquer ERP que consuma esta lib. Isso garante que o agente trabalhando no ERP consumidor siga os padrões corretos de arquitetura.
 
 ---
 

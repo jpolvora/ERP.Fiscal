@@ -274,6 +274,22 @@ Ou use [`samples/nuget.config.local.example`](samples/nuget.config.local.example
 
 ---
 
+## Integração com Consumidores & Agentes (IA)
+
+Esta biblioteca define uma separação rígida de responsabilidades entre o seu ecossistema central (neutro) e as regras específicas dos ERPs consumidores. 
+
+Para facilitar a integração e guiar o desenvolvimento por agentes de IA e desenvolvedores em projetos consumidores (ex.: `FiscalWR`), disponibilizamos uma **Skill de Agente portátil**:
+
+- **Skill portátil:** [`consume-erp-fiscal`](.agents/skills/erp-fiscal-consumer/SKILL.md) (localizada em [`.agents/skills/erp-fiscal-consumer/SKILL.md`](.agents/skills/erp-fiscal-consumer/SKILL.md)).
+
+### Como Instalar a Skill no ERP Consumidor
+
+1. Crie a pasta `.agents/skills/consume-erp-fiscal/` na raiz do repositório do seu **ERP consumidor**.
+2. Copie o arquivo [`SKILL.md`](.agents/skills/erp-fiscal-consumer/SKILL.md) deste repositório e cole nesta pasta recém-criada do ERP consumidor.
+3. Isso ativará instruções automatizadas para o agente do consumidor, ensinando-o a configurar pacotes NuGet, registrar módulos ABP, e seguir o padrão de limites/fronteiras entre o ERP e a biblioteca `ERP.Fiscal`.
+
+---
+
 ## Desenvolvimento (código-fonte)
 
 ### Estrutura
@@ -326,6 +342,7 @@ dotnet pack ERP.Fiscal.slnx -c Release -o ./artifacts/packages
 | Mapeamento lib ↔ API | [`docs/plugnotas/07-mapeamento-erp-fiscal.md`](docs/plugnotas/07-mapeamento-erp-fiscal.md) |
 | Swagger PlugNotas (canônico) | [docs.plugnotas.com.br](https://docs.plugnotas.com.br) |
 | Instruções para agentes IA | [`AGENTS.md`](AGENTS.md) |
+| Skill: Consumo em ERPs | [`.agents/skills/erp-fiscal-consumer/SKILL.md`](.agents/skills/erp-fiscal-consumer/SKILL.md) |
 
 ---
 
