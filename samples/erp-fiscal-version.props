@@ -7,7 +7,7 @@
     Dev: use 0.1.* para última versão de main.
   -->
   <PropertyGroup>
-    <ErpFiscalPackageVersion>0.1.*</ErpFiscalPackageVersion>
+    <ErpFiscalPackageVersion>0.1.3</ErpFiscalPackageVersion>
     <!-- Exemplo pinado para CI: <ErpFiscalPackageVersion>0.1.42</ErpFiscalPackageVersion> -->
   </PropertyGroup>
 </Project>
