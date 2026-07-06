@@ -41,8 +41,11 @@ Pacotes publicados automaticamente no **GitHub Packages** a cada push em `main`.
 
 | Gatilho | Versão | Onde publica |
 |---------|--------|--------------|
-| Push em `main` | `0.1.0-preview.{run}` | GitHub Packages + artefato CI |
+| Merge/push em `main` | `0.1.{N}` — `N` em [`nuget.props`](nuget.props); CI publica e incrementa após publish | GitHub Packages + artefato CI |
+| PR para `main` | build + test apenas (sem pack/publish) | — |
 | Tag `v1.0.0` | `1.0.0` | GitHub Packages + nuget.org (se `NUGET_API_KEY` configurado) |
+
+O contador `PackagePatchNumber` é commitado automaticamente na `main` após cada publicação bem-sucedida (`chore: bump package version … [skip ci]`).
 
 ---
 
@@ -131,15 +134,15 @@ No módulo **Application** (ou host) do seu ERP ABP:
 
 ```xml
 <ItemGroup>
-  <PackageReference Include="ERP.Fiscal.Abstractions" Version="0.1.0-*" />
-  <PackageReference Include="ERP.Fiscal.PlugNotas" Version="0.1.0-*" />
+  <PackageReference Include="ERP.Fiscal.Abstractions" Version="0.1.*" />
+  <PackageReference Include="ERP.Fiscal.PlugNotas" Version="0.1.*" />
 </ItemGroup>
 ```
 
 | Versão | Quando usar |
 |--------|-------------|
-| `0.1.0-*` | Último preview de `main` (floating) |
-| `0.1.0-preview.42` | Preview específico (número do workflow run) |
+| `0.1.*` | Última versão `0.1.x` de `main` (floating) |
+| `0.1.42` | Versão específica (`PackagePatchNumber` no merge que gerou o pacote) |
 | `1.0.0` | Release estável (tag `v1.0.0`) |
 
 Restore:
@@ -214,6 +217,8 @@ steps:
 
 Se o consumidor estiver em **outra org/conta**, o PAT precisa de acesso de leitura aos pacotes de `jpolvora` (pacote público no GitHub Packages ainda exige auth).
 
+**Azure DevOps:** [`docs/consumers/azure-devops.md`](docs/consumers/azure-devops.md).
+
 ### 7. Alternativa: nuget.org (releases com tag)
 
 Após tag `v1.0.0`, se `NUGET_API_KEY` estiver configurado neste repositório, os pacotes também aparecem em:
@@ -283,13 +288,11 @@ dotnet pack ERP.Fiscal.slnx -c Release -o ./artifacts/packages
 
 Workflow [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
 
-1. **build** — restore, build, test, pack
-2. **Publish** — GitHub Packages (push); nuget.org (tag `v*`)
-3. **package-smoke-test** — restaura pacotes do GitHub e executa o sample
+1. **PR → `main`** — restore, build, test (sem pack)
+2. **push `main`** — resolve versão, pack, publish GitHub Packages, bump `nuget.props`, smoke test
+3. **tag `v*`** — pack/publish versão estável (+ nuget.org se `NUGET_API_KEY`)
 
-Artefatos `.nupkg` / `.snupkg` disponíveis em **Actions → Artifacts** de cada run.
-
-**Code review agêntico em PR:** workflow [`.github/workflows/cursor-code-review.yml`](.github/workflows/cursor-code-review.yml) — [cursor-reviewer](https://github.com/jpolvora/cursor-reviewer) via `run.sh` remoto (review-only, publica threads na PR). Requer secret `CURSOR_API_KEY`. Dry-run local e detalhes: [`AGENTS.md`](AGENTS.md#cursor-reviewer-code-review-agêntico-em-pr).
+**Code review agêntico:** apenas PRs com destino `main` — [`.github/workflows/cursor-code-review.yml`](.github/workflows/cursor-code-review.yml)
 
 ---
 

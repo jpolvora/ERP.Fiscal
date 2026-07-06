@@ -6,14 +6,18 @@
 #
 # Documentação: https://github.com/jpolvora/cursor-reviewer (README.md)
 #
+# Gatilho: PR de qualquer branch com destino main (não roda em push direto na main).
+#
 # Pré-requisitos no GitHub:
 #   1. Secret CURSOR_API_KEY (Settings → Secrets and variables → Actions).
 #   2. Workflow com permissions pull-requests: write (GITHUB_TOKEN para publicar threads).
 #
 # Variáveis opcionais (repository variables / env):
-#   CURSOR_REVIEWER_TARGET_BRANCH (default: refs/heads/main)
-#   CURSOR_REVIEWER_MODEL         (default: composer-2.5)
-#   CURSOR_REVIEWER_STACK           (default: autodetect; ERP.Fiscal = .NET/ABP via .slnx)
+#   CURSOR_REVIEWER_MODEL   (default: composer-2.5)
+#   CURSOR_REVIEWER_STACK   (default: autodetect; ERP.Fiscal = .NET/ABP via .slnx)
+# Target branch fixo: refs/heads/main (este repositório não usa master).
+#
+# GitHub: passar --source-branch e --target-branch da PR (runner v0.2.15 não lê GITHUB_HEAD_REF).
 
 name: Cursor Code Review
 
@@ -21,6 +25,10 @@ on:
   pull_request:
     branches:
       - main
+    types:
+      - opened
+      - synchronize
+      - reopened
 
 permissions:
   pull-requests: write
@@ -28,6 +36,7 @@ permissions:
 
 jobs:
   review:
+    if: github.event.pull_request.base.ref == 'main'
     runs-on: ubuntu-latest
 
     steps:
@@ -35,6 +44,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Fetch base branch for diff
+        run: |
+          set -euo pipefail
+          git fetch origin main:refs/remotes/origin/main
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -51,9 +66,13 @@ jobs:
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CURSOR_REVIEWER_TARGET_BRANCH: ${{ vars.CURSOR_REVIEWER_TARGET_BRANCH }}
+          CURSOR_REVIEWER_TARGET_BRANCH: refs/heads/main
           CURSOR_REVIEWER_MODEL: ${{ vars.CURSOR_REVIEWER_MODEL }}
           CURSOR_REVIEWER_STACK: ${{ vars.CURSOR_REVIEWER_STACK }}
         run: |
           set -euo pipefail
-          curl -fsSL https://raw.githubusercontent.com/jpolvora/cursor-reviewer/main/run.sh | bash -s -- --gh --pr-id ${{ github.event.pull_request.number }}
+          curl -fsSL https://raw.githubusercontent.com/jpolvora/cursor-reviewer/main/run.sh | bash -s -- \
+            --gh \
+            --pr-id ${{ github.event.pull_request.number }} \
+            --source-branch refs/heads/${{ github.event.pull_request.head.ref }} \
+            --target-branch refs/heads/main
