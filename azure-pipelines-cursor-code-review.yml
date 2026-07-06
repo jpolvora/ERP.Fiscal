@@ -37,9 +37,9 @@ jobs:
     persistCredentials: true  # o runner faz git fetch das refs source/target em CI
 
   - task: NodeTool@0
-    displayName: 'Install Node.js 22.13+ (@cursor/sdk)'
+    displayName: 'Install Node.js 24.x (@cursor/sdk)'
     inputs:
-      versionSpec: '22.13.x'
+      versionSpec: '24.x'
 
   - script: |
       set -euo pipefail

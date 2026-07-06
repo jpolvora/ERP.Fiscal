@@ -10,10 +10,6 @@ on:
     branches:
       - main
 
-permissions:
-  contents: ${{ github.event_name == 'pull_request' && 'read' || 'write' }}
-  packages: ${{ github.event_name == 'pull_request' && 'read' || 'write' }}
-
 env:
   DOTNET_NOLOGO: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
@@ -22,6 +18,10 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: ${{ github.event_name == 'pull_request' && 'read' || 'write' }}
+      packages: ${{ github.event_name == 'pull_request' && 'read' || 'write' }}
 
     outputs:
       package_version: ${{ steps.version.outputs.package_version }}
