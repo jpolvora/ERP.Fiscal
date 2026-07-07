@@ -19,8 +19,9 @@ secrets.json
 **/secrets/
 
 # IDE / local tooling
-.cursor/
+.cursor/*
 !.cursor/rules/
+!.cursor/rules/**
 .idea/
 *.suo
 *.userosscache
