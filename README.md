@@ -315,6 +315,16 @@ dotnet build ERP.Fiscal.slnx
 dotnet test ERP.Fiscal.slnx
 ```
 
+### Pre-commit (segurança)
+
+Hooks [Husky](https://typicode.github.io/husky/) bloqueiam commits com segredos ou arquivos sensíveis no stage. Setup único na raiz do clone:
+
+```bash
+npm install
+```
+
+Cada `git commit` executa `scripts/pre-commit-security-check.sh` (ver skill `.agents/skills/security-check/SKILL.md`). Teste manual: `npm run security:pre-commit`.
+
 ### Gerar pacotes localmente
 
 ```bash

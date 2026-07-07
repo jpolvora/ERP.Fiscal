@@ -34,7 +34,7 @@ Biblioteca de integração fiscal (NF-e via **PlugNotas**), consumidor-agnóstic
 - **Documentação PlugNotas atualizada:** ao implementar features, corrigir integração ou alterar `Contracts/`/`Providers`/HTTP, seguir a skill [`sync-plugnotas-docs`](.agents/skills/sync-plugnotas-docs/SKILL.md) — consultar o Swagger em https://docs.plugnotas.com.br, cruzar com `docs/plugnotas/`, atualizar os `.md` afetados no mesmo trabalho e sugerir melhorias quando houver lacunas.
 - Consultar a documentação PlugNotas via [`docs/README.md`](docs/README.md) (compilação local com índice); para schema completo de campos, usar o Swagger em https://docs.plugnotas.com.br
 - Aplicar **SOLID** e **DRY**; preferir interfaces e abstrações reutilizáveis.
-- **Checagem de segurança obrigatória:** antes de qualquer commit ou ao final de uma sessão, verificar se há vazamentos de chaves de API, certificados ou segredos usando a skill [`security-check`](.agents/skills/security-check/SKILL.md).
+- **Checagem de segurança obrigatória:** antes de qualquer commit ou ao final de uma sessão, verificar se há vazamentos de chaves de API, certificados ou segredos usando a skill [`security-check`](.agents/skills/security-check/SKILL.md). O hook Husky (`.husky/pre-commit`) reforça isso automaticamente após `npm install`.
 
 ---
 

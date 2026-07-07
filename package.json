@@ -1,0 +1,11 @@
+{
+  "name": "erp-fiscal",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "security:pre-commit": "bash scripts/pre-commit-security-check.sh"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}

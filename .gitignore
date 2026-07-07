@@ -31,6 +31,9 @@ TestResults/
 *.coverage
 *.coveragexml
 
+# Node (Husky pre-commit)
+node_modules/
+
 # NuGet
 *.nupkg
 
