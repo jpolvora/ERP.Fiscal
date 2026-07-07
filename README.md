@@ -296,6 +296,11 @@ Para facilitar a integração e guiar o desenvolvimento por agentes de IA e dese
 
 ```text
 ERP.Fiscal/
+├── package.json                    # Husky + npm scripts security:*
+├── .husky/pre-commit               # hook → scripts/pre-commit-security-check.sh
+├── scripts/
+│   ├── pre-commit-security-check.sh
+│   └── audit-history-secrets.sh
 ├── src/
 │   ├── ERP.Fiscal.Abstractions/    # interfaces + DTOs neutros
 │   └── ERP.Fiscal.PlugNotas/       # HTTP, parsers, providers, módulo ABP
@@ -303,7 +308,10 @@ ERP.Fiscal/
 │   └── ERP.Fiscal.PlugNotas.Tests/ # 91 testes unitários
 ├── samples/
 │   └── ERP.Fiscal.PackageSmokeTest/
-├── docs/plugnotas/                 # documentação PlugNotas compilada
+├── docs/
+│   ├── README.md                   # índice docs (roteamento)
+│   ├── security/README.md          # índice segurança
+│   └── plugnotas/                  # documentação PlugNotas compilada
 ├── .github/workflows/validate-pr.yml
 └── .github/workflows/deploy-main.yml
 ```
@@ -315,17 +323,24 @@ dotnet build ERP.Fiscal.slnx
 dotnet test ERP.Fiscal.slnx
 ```
 
-### Pre-commit (segurança)
+### Segurança (segredos e privacidade)
 
-Hooks [Husky](https://typicode.github.io/husky/) bloqueiam commits com segredos ou arquivos sensíveis no stage. Setup único na raiz do clone:
+**Índice de roteamento:** [`docs/security/README.md`](docs/security/README.md) — quando usar Husky, scripts, Gitleaks e auditoria de histórico.
+
+**Procedimento para agentes:** [`.agents/skills/security-check/SKILL.md`](.agents/skills/security-check/SKILL.md) — varredura obrigatória em uncommitted, versionados e temporários (mesmo ignorados).
+
+Setup único na raiz do clone:
 
 ```bash
 npm install
 ```
 
-Cada `git commit` executa `scripts/pre-commit-security-check.sh` (ver skill `.agents/skills/security-check/SKILL.md`). Teste manual: `npm run security:pre-commit`.
+| Comando | Função |
+|---------|--------|
+| `npm run security:pre-commit` | Simula o hook — valida apenas o **stage** |
+| `npm run security:audit-history` | Auditoria read-only de HEAD + histórico Git + Gitleaks |
 
-Auditoria completa do histórico (read-only): `bash scripts/audit-history-secrets.sh --install-gitleaks`.
+Cada `git commit` executa automaticamente `scripts/pre-commit-security-check.sh`. O hook **complementa** a skill — não substitui varredura de arquivos tracked e caches locais.
 
 ### Gerar pacotes localmente
 
@@ -348,7 +363,9 @@ dotnet pack ERP.Fiscal.slnx -c Release -o ./artifacts/packages
 
 | Recurso | Link |
 |---------|------|
-| Índice PlugNotas (agentes/devs) | [`docs/README.md`](docs/README.md) |
+| Índice docs (roteamento agentes) | [`docs/README.md`](docs/README.md) |
+| Índice PlugNotas | [`docs/plugnotas/README.md`](docs/plugnotas/README.md) |
+| Segurança (Husky, auditoria Git) | [`docs/security/README.md`](docs/security/README.md) |
 | Ambientes e API key | [`docs/plugnotas/01-ambientes-autenticacao.md`](docs/plugnotas/01-ambientes-autenticacao.md) |
 | Fluxo emissão NF-e | [`docs/plugnotas/04-nfe-fluxo-emissao.md`](docs/plugnotas/04-nfe-fluxo-emissao.md) |
 | Mapeamento lib ↔ API | [`docs/plugnotas/07-mapeamento-erp-fiscal.md`](docs/plugnotas/07-mapeamento-erp-fiscal.md) |
@@ -356,6 +373,7 @@ dotnet pack ERP.Fiscal.slnx -c Release -o ./artifacts/packages
 | Instruções para agentes IA | [`AGENTS.md`](AGENTS.md) |
 | Padrão de integração nos consumidores | [`docs/consumers/padrao-integracao.md`](docs/consumers/padrao-integracao.md) |
 | Skill: Consumo em ERPs | [`.agents/skills/erp-fiscal-consumer/SKILL.md`](.agents/skills/erp-fiscal-consumer/SKILL.md) |
+| Skill: Checagem de segurança | [`.agents/skills/security-check/SKILL.md`](.agents/skills/security-check/SKILL.md) |
 
 ---
 

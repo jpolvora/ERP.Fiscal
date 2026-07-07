@@ -1,10 +1,12 @@
 ---
 name: security-check
 description: Diretrizes e checagens automáticas/manuais para evitar vazamento de credenciais, chaves, certificados e dados privados — em mudanças locais, arquivos versionados e temporários.
-version: 1.1
+version: 1.2
 ---
 
 # 🛡️ Security Check — Prevenção de Vazamento de Credenciais e Segredos
+
+> **Progressive disclosure:** roteamento e comandos npm → [`docs/security/README.md`](../../../docs/security/README.md). Este arquivo contém o **procedimento detalhado** (fases A–F, remediação). Índice mestre do harness: [`AGENTS.md`](../../../AGENTS.md).
 
 Esta skill descreve as regras e procedimentos de segurança obrigatórios para garantir que nenhuma credencial, chave de API (API key), certificado digital, senha ou dado sensível seja exposto publicamente no repositório GitHub.
 
@@ -133,16 +135,21 @@ Formato mínimo do relatório:
 
 ### Hook local (Husky)
 
-Em cada `git commit`, o hook [`.husky/pre-commit`](../../.husky/pre-commit) executa [`scripts/pre-commit-security-check.sh`](../../scripts/pre-commit-security-check.sh) sobre **arquivos staged**. Setup único: `npm install` na raiz do repo (ativa Husky via `prepare`).
+Índice: [`docs/security/README.md`](../../../docs/security/README.md) § Automação.
+
+Em cada `git commit`, o hook [`.husky/pre-commit`](../../.husky/pre-commit) executa [`scripts/pre-commit-security-check.sh`](../../scripts/pre-commit-security-check.sh) sobre **arquivos staged**. Setup único: `npm install` na raiz do repo (ativa Husky via `prepare`). Teste: `npm run security:pre-commit`.
 
 O hook complementa — **não substitui** — a varredura manual das fases A–E (tracked + temporários ignorados).
 
 ### Auditoria de histórico (read-only)
 
+Índice: [`docs/security/README.md`](../../../docs/security/README.md) § Automação.
+
 Script [`scripts/audit-history-secrets.sh`](../../scripts/audit-history-secrets.sh): varre HEAD, histórico Git, temporários, Gitleaks (opcional), `git-filter-repo --analyze` e `--dry-run` de remediação. Relatórios em `.security-audit/` (gitignored).
 
 ```bash
-bash scripts/audit-history-secrets.sh --install-gitleaks
+npm run security:audit-history
+# equivalente: bash scripts/audit-history-secrets.sh --install-gitleaks
 ```
 
 ---

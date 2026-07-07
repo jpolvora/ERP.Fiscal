@@ -4,6 +4,7 @@
 > 
 > - **Visão geral do repositório:** [`README.md`](README.md).
 > - **Documentação PlugNotas (API/Integração):** [`docs/README.md`](docs/README.md).
+> - **Segurança (segredos, Husky, auditoria Git):** [`docs/security/README.md`](docs/security/README.md).
 > - **Skills e Diretrizes do Agente:** consulte o [Índice de Skills e Customizações](#skills-e-customizações-indice) abaixo.
 
 Biblioteca de integração fiscal (NF-e via **PlugNotas**), consumidor-agnóstica. Stack: **ABP Module (.NET 10)**, backend-only, **sem EF Core, sem banco, sem entidades de domínio dos consumidores**.
@@ -18,7 +19,7 @@ Biblioteca de integração fiscal (NF-e via **PlugNotas**), consumidor-agnóstic
 | **code-review** | [`.agents/skills/code-review/SKILL.md`](file:///.agents/skills/code-review/SKILL.md) | Regras para execução de revisão de código local rigorosa comparando a branch atual com a principal. |
 | **karpathy-guidelines** | [`.agents/skills/karpathy-guidelines/SKILL.md`](file:///.agents/skills/karpathy-guidelines/SKILL.md) | Boas práticas de codificação para evitar alucinações e erros comuns de LLMs. |
 | **consume-erp-fiscal** | [`.agents/skills/erp-fiscal-consumer/SKILL.md`](file:///.agents/skills/erp-fiscal-consumer/SKILL.md) | **[Portável para Consumidores]** Guia de integração para ERPs que consomem esta biblioteca. Ensina a instalar/atualizar via NuGet/GitHub Packages, integrar com ABP, e gerenciar as fronteiras rígidas de código (domínio especializado local vs lógica fiscal neutra). |
-| **security-check** | [`.agents/skills/security-check/SKILL.md`](file:///.agents/skills/security-check/SKILL.md) | **[Sempre neste repo]** Checagem contra vazamento de segredos, credenciais, chaves API e dados sensíveis antes de propor commits e concluir tarefas. |
+| **security-check** | [`.agents/skills/security-check/SKILL.md`](file:///.agents/skills/security-check/SKILL.md) | **[Sempre neste repo]** Segredos, credenciais, PII e privacidade de consumidores — antes de commits e ao concluir tarefas. Índice: [`docs/security/README.md`](docs/security/README.md). Automação: Husky + `scripts/pre-commit-security-check.sh`; auditoria histórico: `scripts/audit-history-secrets.sh`. Regra Cursor: [`.cursor/rules/security-check.mdc`](.cursor/rules/security-check.mdc). |
 | **release-nuget-package** | [`.agents/skills/release-nuget-package/SKILL.md`](file:///.agents/skills/release-nuget-package/SKILL.md) | **[Este repo]** Publicação automatizada dos pacotes NuGet (`ERP.Fiscal.Abstractions`, `ERP.Fiscal.PlugNotas`): resolve versão, dispara `Deploy Main`, tag, GitHub Release e validação em GitHub Packages / NuGet.org. Script: `scripts/release-nuget.sh`. |
 
 > [!TIP]
@@ -34,7 +35,7 @@ Biblioteca de integração fiscal (NF-e via **PlugNotas**), consumidor-agnóstic
 - **Documentação PlugNotas atualizada:** ao implementar features, corrigir integração ou alterar `Contracts/`/`Providers`/HTTP, seguir a skill [`sync-plugnotas-docs`](.agents/skills/sync-plugnotas-docs/SKILL.md) — consultar o Swagger em https://docs.plugnotas.com.br, cruzar com `docs/plugnotas/`, atualizar os `.md` afetados no mesmo trabalho e sugerir melhorias quando houver lacunas.
 - Consultar a documentação PlugNotas via [`docs/README.md`](docs/README.md) (compilação local com índice); para schema completo de campos, usar o Swagger em https://docs.plugnotas.com.br
 - Aplicar **SOLID** e **DRY**; preferir interfaces e abstrações reutilizáveis.
-- **Checagem de segurança obrigatória:** antes de qualquer commit ou ao final de uma sessão, verificar se há vazamentos de chaves de API, certificados ou segredos usando a skill [`security-check`](.agents/skills/security-check/SKILL.md). O hook Husky (`.husky/pre-commit`) reforça isso automaticamente após `npm install`.
+- **Checagem de segurança obrigatória:** seguir [`docs/security/README.md`](docs/security/README.md) e a skill [`security-check`](.agents/skills/security-check/SKILL.md) — varredura uncommitted + versionados + temporários; Husky reforça o stage após `npm install`.
 
 ---
 
@@ -57,6 +58,24 @@ Biblioteca de integração fiscal (NF-e via **PlugNotas**), consumidor-agnóstic
 | Consulta CNPJ/CEP (auxiliares) | [`docs/plugnotas/08-auxiliares-cnpj-cep.md`](docs/plugnotas/08-auxiliares-cnpj-cep.md) |
 
 Não carregar todos os arquivos de uma vez — seguir a tabela **"Quando usar cada documento"** em [`docs/README.md`](docs/README.md).
+
+---
+
+## Segurança (segredos e privacidade)
+
+**Ponto de entrada:** [`docs/security/README.md`](docs/security/README.md) — índice de roteamento (Husky, scripts, Gitleaks, histórico Git).
+
+**Procedimento detalhado:** skill [`security-check`](.agents/skills/security-check/SKILL.md) — carregar ao propor commit, responder `/security-check` ou investigar vazamento.
+
+| Contexto | Recurso |
+|----------|---------|
+| Índice e comandos npm | [`docs/security/README.md`](docs/security/README.md) |
+| Checklist manual (fases A–F) | [`.agents/skills/security-check/SKILL.md`](.agents/skills/security-check/SKILL.md) |
+| Bloqueio no `git commit` | `.husky/pre-commit` → `scripts/pre-commit-security-check.sh` |
+| Auditoria read-only do histórico | `npm run security:audit-history` |
+| Release / publicação NuGet | skill `security-check` + [`release-nuget-package`](.agents/skills/release-nuget-package/SKILL.md) |
+
+Não duplicar checklists de segurança fora da skill — usar links.
 
 ---
 
@@ -111,6 +130,15 @@ Se a extração exigir conhecer **quem consome a lib**, o código está no lugar
 ERP.Fiscal/
 ├── ERP.Fiscal.slnx
 ├── common.props                    # net10.0, nullable, LangVersion latest
+├── package.json                    # Husky + npm scripts security:*
+├── .husky/pre-commit               # hook: scripts/pre-commit-security-check.sh
+├── scripts/
+│   ├── pre-commit-security-check.sh
+│   └── audit-history-secrets.sh    # auditoria histórico (read-only)
+├── docs/
+│   ├── README.md                   # índice docs (PlugNotas + roteamento)
+│   ├── security/README.md          # índice segurança
+│   └── plugnotas/                  # compilação PlugNotas
 ├── src/
 │   ├── ERP.Fiscal.Abstractions/    # zero dependências externas
 │   │   ├── INfeEmissaoProvider.cs
@@ -147,6 +175,8 @@ ERP.Fiscal/
 | Helper neutro que opera em payload/params PlugNotas ou types da própria lib | `src/ERP.Fiscal.PlugNotas/Payload/` |
 | Registro DI / módulo ABP | `PlugNotasFiscalModule.cs` |
 | Testes unitários | `test/ERP.Fiscal.PlugNotas.Tests/` espelhando a pasta de origem |
+| Script de segurança (pre-commit / auditoria) | `scripts/pre-commit-security-check.sh`, `scripts/audit-history-secrets.sh` |
+| Índice ou doc de segurança | `docs/security/README.md` (roteamento); skill `.agents/skills/security-check/SKILL.md` (procedimento) |
 
 ---
 
@@ -295,8 +325,9 @@ curl -fsSL https://raw.githubusercontent.com/jpolvora/cursor-reviewer/main/run.s
 
 ## Referências
 
+- [`docs/security/README.md`](docs/security/README.md) — **índice** segurança (Husky, auditoria histórico, roteamento)
+- [`.agents/skills/security-check/SKILL.md`](.agents/skills/security-check/SKILL.md) — procedimento de checagem e remediação
 - [`.agents/skills/sync-plugnotas-docs/SKILL.md`](.agents/skills/sync-plugnotas-docs/SKILL.md) — sincronizar e manter `docs/plugnotas/` vs Swagger oficial
-- [`.agents/skills/security-check/SKILL.md`](.agents/skills/security-check/SKILL.md) — Checagem de segurança e prevenção de vazamento de segredos
 - [`docs/README.md`](docs/README.md) — **índice** da documentação PlugNotas compilada (carregar sob demanda)
 - [`docs/plugnotas/README.md`](docs/plugnotas/README.md) — índice detalhado PlugNotas + regra de ouro lib vs consumidor
 - [README.md](README.md) — visão geral e quick start

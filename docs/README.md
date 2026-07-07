@@ -22,6 +22,8 @@ Biblioteca compartilhada de integração fiscal via **PlugNotas** (TecnoSpeed). 
 | Implementar/alterar `ERP.Fiscal.PlugNotas` | [`plugnotas/07-mapeamento-erp-fiscal.md`](plugnotas/07-mapeamento-erp-fiscal.md) |
 | Padronizar consumo em ERP consumidor (Marchante, Florestal, FiscalWR) | [`consumers/padrao-integracao.md`](consumers/padrao-integracao.md) |
 | Consulta CNPJ/CEP (auxiliares) | [`plugnotas/08-auxiliares-cnpj-cep.md`](plugnotas/08-auxiliares-cnpj-cep.md) |
+| Segurança — segredos, Husky, auditoria Git | [`security/README.md`](security/README.md) → skill [`security-check`](../.agents/skills/security-check/SKILL.md) |
+| Antes de commit / release / `/security-check` | [`security/README.md`](security/README.md) |
 
 ---
 
@@ -61,3 +63,5 @@ Estes `.md` são **compilação de referência para agentes** — extraídos da 
 |---------|--------|
 | [`../AGENTS.md`](../AGENTS.md) | Instruções gerais para agentes (fronteira da lib, onde colocar código) |
 | [`../README.md`](../README.md) | Visão geral e quick start |
+| [`security/README.md`](security/README.md) | Índice segurança (Husky, scripts, Gitleaks, histórico Git) |
+| [`.agents/skills/security-check/SKILL.md`](../.agents/skills/security-check/SKILL.md) | Procedimento detalhado de checagem (fases A–F) |
