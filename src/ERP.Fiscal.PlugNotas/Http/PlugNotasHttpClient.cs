@@ -110,7 +110,12 @@ internal class PlugNotasHttpClient
     public Task<PlugNotasNfeGetRawResult> ObterNfeResumoPorCnpjIdIntegracaoAsync(
         string baseUrl, string apiToken, string cpfCnpjDigits, string idIntegracao, CancellationToken cancellationToken = default)
     {
-        var cnpj = new string((cpfCnpjDigits ?? string.Empty).Where(char.IsDigit).ToArray());
+        var cnpj = FiscalDigitsHelper.DigitsOnly(cpfCnpjDigits);
+        if (!IsValidCpfCnpjDigits(cnpj))
+        {
+            return Task.FromResult(CreateInvalidCpfCnpjResult());
+        }
+
         var id = NormalizePlugNotasNfePathId(idIntegracao);
         var url = Combine(baseUrl, $"nfe/{Uri.EscapeDataString(cnpj)}/{Uri.EscapeDataString(id)}/resumo");
         return SendNfeGetAsync(url, apiToken, cancellationToken);
@@ -168,7 +173,12 @@ internal class PlugNotasHttpClient
         bool? manifestada,
         CancellationToken cancellationToken = default)
     {
-        var cnpj = new string((cpfCnpjDigits ?? string.Empty).Where(char.IsDigit).ToArray());
+        var cnpj = FiscalDigitsHelper.DigitsOnly(cpfCnpjDigits);
+        if (!IsValidCpfCnpjDigits(cnpj))
+        {
+            return Task.FromResult(CreateInvalidCpfCnpjResult());
+        }
+
         var query = new List<string> { $"cpfCnpj={Uri.EscapeDataString(cnpj)}" };
         if (limite > 0)
             query.Add($"limite={limite}");
@@ -632,4 +642,12 @@ internal class PlugNotasHttpClient
             return g.ToString("N");
         return t;
     }
+
+    private static bool IsValidCpfCnpjDigits(string digits) => digits.Length is 11 or 14;
+
+    private static PlugNotasNfeGetRawResult CreateInvalidCpfCnpjResult() => new()
+    {
+        HttpStatusCode = 0,
+        ErrorMessage = "CPF/CNPJ inválido: informe 11 ou 14 dígitos."
+    };
 }

@@ -104,6 +104,54 @@ public class PlugNotasHttpClientTests
     }
 
     [Fact]
+    public async Task ListarNfeDestinadaAsync_deve_chamar_rota_destinada_com_cnpj_normalizado()
+    {
+        var handler = new FakeHttpMessageHandler().Enqueue(HttpStatusCode.OK, "[]");
+        var client = CreateClient(handler);
+
+        await client.ListarNfeDestinadaAsync(
+            "https://api.sandbox.plugnotas.com.br", "test-key", "12.345.678/0001-99", 10, null);
+
+        handler.Requests[0].RequestUri!.ToString().ShouldBe(
+            "https://api.sandbox.plugnotas.com.br/nfe/destinada?cpfCnpj=12345678000199&limite=10");
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("123")]
+    [InlineData("123456789012")]
+    public async Task ListarNfeDestinadaAsync_deve_rejeitar_cpf_cnpj_invalido_sem_http(string cpfCnpj)
+    {
+        var handler = new FakeHttpMessageHandler();
+        var client = CreateClient(handler);
+
+        var result = await client.ListarNfeDestinadaAsync(
+            "https://api.sandbox.plugnotas.com.br", "test-key", cpfCnpj, 10, null);
+
+        result.Success.ShouldBeFalse();
+        result.HttpStatusCode.ShouldBe(0);
+        result.ErrorMessage.ShouldContain("CPF/CNPJ inválido");
+        handler.Requests.ShouldBeEmpty();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("12345")]
+    public async Task ObterNfeResumoPorCnpjIdIntegracaoAsync_deve_rejeitar_cpf_cnpj_invalido_sem_http(string cpfCnpj)
+    {
+        var handler = new FakeHttpMessageHandler();
+        var client = CreateClient(handler);
+
+        var result = await client.ObterNfeResumoPorCnpjIdIntegracaoAsync(
+            "https://api.sandbox.plugnotas.com.br", "test-key", cpfCnpj, "3a2051697c93d0aca55f0557987f77d8");
+
+        result.Success.ShouldBeFalse();
+        result.HttpStatusCode.ShouldBe(0);
+        result.ErrorMessage.ShouldContain("CPF/CNPJ inválido");
+        handler.Requests.ShouldBeEmpty();
+    }
+
+    [Fact]
     public async Task CadastrarCertificadoAsync_deve_enviar_multipart_com_arquivo_e_senha()
     {
         var handler = new FakeHttpMessageHandler()

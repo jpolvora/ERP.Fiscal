@@ -93,6 +93,8 @@ Cada ERP mantém enum local (`AmbienteFiscal`) + `NfeAmbienteMapper` (extensões
 | `INfeAuxiliaresProvider` | `PlugNotasLibOperacoesAuxiliares` → `IOperacoesAuxiliares` |
 | `INfeDestinadaProvider` | `PlugNotasLibConsultaNFeDestinadaClient` (FiscalWR) |
 
+`PlugNotasHttpClient` valida CPF/CNPJ (11 ou 14 dígitos) **antes** de chamadas HTTP em `ListarNfeDestinadaAsync` e `ObterNfeResumoPorCnpjIdIntegracaoAsync`; entrada inválida retorna erro local (`HttpStatusCode=0`) sem contatar a API.
+
 ## O que fica no ERP (não promover)
 
 - Payload builders (domínio → JSON)
