@@ -34,6 +34,10 @@ TestResults/
 # Node (Husky pre-commit)
 node_modules/
 
+# Security audit artifacts
+.security-audit/
+.tools/
+
 # NuGet
 *.nupkg
 

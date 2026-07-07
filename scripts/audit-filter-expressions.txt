@@ -1,0 +1,9 @@
+# Expressões para preview com git-filter-repo --dry-run --replace-text
+# Não inclui o sandbox público PlugNotas (documentado em PlugNotasAmbienteConstants).
+# Sintaxe: https://github.com/newren/git-filter-repo/blob/main/Documentation/git-filter-repo.txt
+
+regex:gh[pousr]_[A-Za-z0-9_]{20,}==>***REMOVED***
+regex:github_pat_[A-Za-z0-9_]{20,}==>***REMOVED***
+regex:AKIA[0-9A-Z]{16}==>***REMOVED***
+regex:-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----[\s\S]*?-----END (RSA |EC |OPENSSH )?PRIVATE KEY-----==>***REMOVED***
+regex:(CURSOR_API_KEY|NUGET_API_KEY)[[:space:]]*=[[:space:]]*[^[:space:]${}\r\n]+==>\1=***REMOVED***

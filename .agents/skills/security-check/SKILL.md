@@ -137,6 +137,14 @@ Em cada `git commit`, o hook [`.husky/pre-commit`](../../.husky/pre-commit) exec
 
 O hook complementa — **não substitui** — a varredura manual das fases A–E (tracked + temporários ignorados).
 
+### Auditoria de histórico (read-only)
+
+Script [`scripts/audit-history-secrets.sh`](../../scripts/audit-history-secrets.sh): varre HEAD, histórico Git, temporários, Gitleaks (opcional), `git-filter-repo --analyze` e `--dry-run` de remediação. Relatórios em `.security-audit/` (gitignored).
+
+```bash
+bash scripts/audit-history-secrets.sh --install-gitleaks
+```
+
 ---
 
 ## 🚨 3. O que Fazer se Encontrar um Vazamento

@@ -325,6 +325,8 @@ npm install
 
 Cada `git commit` executa `scripts/pre-commit-security-check.sh` (ver skill `.agents/skills/security-check/SKILL.md`). Teste manual: `npm run security:pre-commit`.
 
+Auditoria completa do histórico (read-only): `bash scripts/audit-history-secrets.sh --install-gitleaks`.
+
 ### Gerar pacotes localmente
 
 ```bash
