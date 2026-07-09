@@ -2,7 +2,7 @@
 
 > Compilação derivada de [docs.plugnotas.com.br](https://docs.plugnotas.com.br) e artigos Zendesk TecnoSpeed. **Não substitui** o Swagger para dicionário completo de campos.
 >
-> **Última verificação:** 2026-07-06 — fonte [docs.plugnotas.com.br](https://docs.plugnotas.com.br) (coleção Postman oficial + Zendesk). Skill: [sync-plugnotas-docs](../../.agents/skills/sync-plugnotas-docs/SKILL.md).
+> **Última verificação:** 2026-07-08 — fonte [docs.plugnotas.com.br](https://docs.plugnotas.com.br) (coleção Postman oficial + Zendesk). Skill: [sync-plugnotas-docs](../../.agents/skills/sync-plugnotas-docs/SKILL.md).
 
 ---
 

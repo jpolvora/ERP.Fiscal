@@ -186,7 +186,7 @@ ERP.Fiscal/
 |-----------|------------------|
 | `INfeEmissaoProvider` | Emitir, consultar, cancelar NF-e; obter XML/PDF |
 | `INfeIntegracaoProvider` | Cadastro/consulta de certificado e emissor; sync de ambiente |
-| `INfeAuxiliaresProvider` | Consulta CNPJ/CEP (formulários de cadastro) |
+| `INfeAuxiliaresProvider` | Consulta CNPJ/CEP/municípios NFS-e (formulários de cadastro) |
 | `INfeAmbientePolicy` | Resolver ambiente efetivo (ex.: forçar Sandbox) — **implementar no ERP** |
 
 ---

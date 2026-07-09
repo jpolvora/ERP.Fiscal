@@ -71,6 +71,8 @@ CODE_ROUTES: frozenset[tuple[str, str]] = frozenset(
         ("PATCH", "/empresa/{cnpj}/config"),
         ("GET", "/cnpj/{cnpj}"),
         ("GET", "/cep/{cep}"),
+        ("GET", "/nfse/cidades"),
+        ("GET", "/nfse/cidades/{codigoibge}"),
     }
 )
 

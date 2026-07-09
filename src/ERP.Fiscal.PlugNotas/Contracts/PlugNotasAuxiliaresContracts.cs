@@ -37,3 +37,11 @@ internal sealed class PlugNotasConsultaCepDados
     public string? CodigoIbge { get; set; }
     public string? CodigoMunicipio { get; set; }
 }
+
+/// <summary>Item de <c>GET /nfse/cidades</c> (campos usados no autocomplete).</summary>
+internal sealed class PlugNotasNfseCidadeDados
+{
+    public long? Id { get; set; }
+    public string? Nome { get; set; }
+    public string? Uf { get; set; }
+}

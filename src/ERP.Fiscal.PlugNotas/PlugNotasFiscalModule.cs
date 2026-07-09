@@ -22,6 +22,8 @@ public class PlugNotasFiscalModule : AbpModule
         var configuration = context.Services.GetConfiguration();
         context.Services.Configure<PlugNotasOptions>(configuration.GetSection(PlugNotasOptions.SectionName));
 
+        context.Services.AddMemoryCache();
+
         context.Services.AddHttpClient<PlugNotasHttpClient>()
             .ConfigureHttpClient(c => c.Timeout = TimeSpan.FromMinutes(2));
 

@@ -36,11 +36,19 @@ public class PlugNotasOptions
     /// <summary>Política de retry para POST <c>/nfe</c> em falhas transitórias.</summary>
     public PlugNotasRetryOptions Retry { get; set; } = new();
 
+    /// <summary>
+    /// TTL em minutos do cache da lista <c>GET /nfse/cidades</c>. Default 360 (6h). Mínimo efetivo: 1.
+    /// </summary>
+    public int MunicipiosCacheMinutes { get; set; } = 360;
+
     public static int NormalizeTipoContrato(int value) => value == 0 ? 0 : 1;
 
     public int GetEffectiveMaxAttempts() => Retry.MaxAttempts < 1 ? 1 : Retry.MaxAttempts;
 
     public int GetEffectiveBaseDelayMs() => Retry.BaseDelayMs < 100 ? 100 : Retry.BaseDelayMs;
+
+    public int GetEffectiveMunicipiosCacheMinutes() =>
+        MunicipiosCacheMinutes < 1 ? 1 : MunicipiosCacheMinutes;
 }
 
 /// <summary>Configuração de tentativas para emissão NF-e na PlugNotas.</summary>

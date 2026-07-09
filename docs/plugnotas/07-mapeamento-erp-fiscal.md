@@ -31,7 +31,7 @@ api.plugnotas.com.br | api.sandbox.plugnotas.com.br
 |-----------|------------------|----------|
 | `INfeEmissaoProvider` | Emitir, consultar, cancelar, XML, PDF | `PlugNotasNfeEmissaoProvider` |
 | `INfeIntegracaoProvider` | Certificado + empresa + sync ambiente | `PlugNotasIntegracaoProvider` |
-| `INfeAuxiliaresProvider` | CNPJ, CEP | `PlugNotasAuxiliaresProvider` |
+| `INfeAuxiliaresProvider` | CNPJ, CEP, municípios NFS-e | `PlugNotasAuxiliaresProvider` |
 | `INfeDestinadaProvider` | NF-e destinadas (DF-e) | `PlugNotasDestinadaProvider` |
 | `INfeAmbientePolicy` | Ambiente efetivo (OnlySandbox) | **Implementar no ERP** ou `PlugNotasDefaultAmbientePolicy` |
 
@@ -56,6 +56,8 @@ Registro: `PlugNotasFiscalModule` — `[DependsOn(typeof(PlugNotasFiscalModule))
 | GET `/nfe/{id}/pdf` | `ObterPdfNfePorIdAsync` | `ObterPdfAsync` |
 | GET `/cnpj/{cnpj}` | — (`PlugNotasAuxiliaresProvider`) | `ConsultarCnpjAsync` |
 | GET `/cep/{cep}` | — (`PlugNotasAuxiliaresProvider`) | `ConsultarCepAsync` |
+| GET `/nfse/cidades` | — (`PlugNotasAuxiliaresProvider`, cache) | `ConsultarMunicipiosAsync` |
+| GET `/nfse/cidades/{codigoIbge}` | — (`PlugNotasAuxiliaresProvider`) | `ConsultarMunicipioPorIbgeAsync` |
 
 Cliente interno NF-e/cadastro: `PlugNotasHttpClient`. Auxiliares: `PlugNotasAuxiliaresProvider` com `HttpClient` próprio.
 
@@ -95,6 +97,10 @@ DTOs neutros: `NfeEmissaoResult`, `NfeConsultaResult`, `NfeProviderResult`, etc.
 | Helper | Função |
 |--------|--------|
 | `PlugNotasNfePayloadAmbienteHelper` | Injeta `config.producao` e `intermediador` no array JSON |
+| `PlugNotasNfeTributosPayloadHelper` | Monta `itens[].tributos` (Simples Nacional / regime normal) |
+| `PlugNotasNfeTotalIcmsCst51Helper` | Preenche `total.valorIcms` quando há item CST ICMS 51 |
+| `PlugNotasNfeNaturezaCamposHelper` | Regras `finalidade` (1–6) e combinação `presencial`/`finalidade` |
+| `PlugNotasNfePayloadReadiness` | Validação mínima do documento antes de transmitir (inclui natureza) |
 
 Usado pelo **ERP** antes de chamar `INfeEmissaoProvider.EmitirAsync` — não depende de entidades.
 
