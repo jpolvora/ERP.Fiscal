@@ -21,4 +21,21 @@ public class PlugNotasNfePayloadReadinessTests
         PlugNotasNfeNaturezaCamposHelper.CombinacaoInvalidaPlugNotas("0", 1).ShouldBeTrue();
         PlugNotasNfeNaturezaCamposHelper.CombinacaoInvalidaPlugNotas("0", 2).ShouldBeFalse();
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(0)]
+    [InlineData(7)]
+    public void FinalidadeInvalida_deve_rejeitar_valores_fora_da_faixa(int? finalidade)
+    {
+        PlugNotasNfeNaturezaCamposHelper.FinalidadeInvalida(finalidade).ShouldBeTrue();
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(6)]
+    public void FinalidadeInvalida_deve_aceitar_faixa_oficial(int finalidade)
+    {
+        PlugNotasNfeNaturezaCamposHelper.FinalidadeInvalida(finalidade).ShouldBeFalse();
+    }
 }

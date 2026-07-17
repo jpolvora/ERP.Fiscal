@@ -1,0 +1,16 @@
+---
+description: Checagem de segredos e privacidade — skill obrigatória antes de commits e ao concluir tarefas.
+alwaysApply: true
+---
+
+# Segurança — segredos e privacidade
+
+**Antes de propor commits** ou **ao concluir uma tarefa** neste repositório:
+
+1. Carregar e seguir a skill [`.agents/skills/security-check/SKILL.md`](../../.agents/skills/security-check/SKILL.md).
+2. Consultar o índice de roteamento em [`docs/security/README.md`](../../docs/security/README.md) — não duplicar procedimentos fora da skill.
+3. Após `npm install`, o hook [`.husky/pre-commit`](../../.husky/pre-commit) valida o **stage** automaticamente; a skill ainda exige varredura de tracked e temporários.
+
+**Entrada humana / agente:** [`docs/security/README.md`](../../docs/security/README.md) → skill `security-check` sob demanda.
+
+**Auditoria de histórico (periódica ou pós-incidente):** `npm run security:audit-history`.

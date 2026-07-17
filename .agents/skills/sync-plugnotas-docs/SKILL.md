@@ -138,7 +138,7 @@ Ao **corrigir** bug:
 Em [`docs/README.md`](../../../docs/README.md) e [`docs/plugnotas/README.md`](../../../docs/plugnotas/README.md), manter:
 
 ```markdown
-> **Última verificação:** YYYY-MM — fonte [docs.plugnotas.com.br](https://docs.plugnotas.com.br). Skill: [sync-plugnotas-docs](.agents/skills/sync-plugnotas-docs/SKILL.md).
+> **Última verificação:** YYYY-MM — fonte [docs.plugnotas.com.br](https://docs.plugnotas.com.br). Skill: [sync-plugnotas-docs](SKILL.md).
 ```
 
 Substituir `YYYY-MM` pela data real da verificação.

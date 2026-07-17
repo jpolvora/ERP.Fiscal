@@ -44,7 +44,7 @@ public static class PlugNotasNfePayloadReadiness
         }
 
         if (PlugNotasNfeNaturezaCamposHelper.FinalidadeInvalida(doc.Finalidade))
-            p.Add("Finalidade da NF-e é obrigatória (1 = normal, 2 = complementar, 3 = ajuste, etc.).");
+            p.Add("Finalidade da NF-e deve estar entre 1 (normal) e 6 (débito).");
 
         if (PlugNotasNfeNaturezaCamposHelper.CombinacaoInvalidaPlugNotas(doc.Presencial, doc.Finalidade))
         {

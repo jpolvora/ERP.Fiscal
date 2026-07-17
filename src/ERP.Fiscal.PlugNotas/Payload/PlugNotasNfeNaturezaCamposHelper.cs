@@ -4,6 +4,8 @@ namespace ERP.Fiscal.PlugNotas.Payload;
 public static class PlugNotasNfeNaturezaCamposHelper
 {
     public const int PresencialNaoSeAplica = 0;
+    public const int FinalidadeMinimaPlugNotas = 1;
+    public const int FinalidadeMaximaPlugNotas = 6;
     public const int FinalidadeNfeComplementar = 2;
     public const int FinalidadeNfeAjuste = 3;
 
@@ -17,5 +19,5 @@ public static class PlugNotasNfeNaturezaCamposHelper
     }
 
     public static bool FinalidadeInvalida(int? finalidade) =>
-        !finalidade.HasValue || finalidade.Value <= 0;
+        !finalidade.HasValue || finalidade.Value < FinalidadeMinimaPlugNotas || finalidade.Value > FinalidadeMaximaPlugNotas;
 }

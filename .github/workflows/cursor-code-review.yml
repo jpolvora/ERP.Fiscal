@@ -70,10 +70,23 @@ jobs:
           CURSOR_REVIEWER_TARGET_BRANCH: refs/heads/main
           CURSOR_REVIEWER_MODEL: ${{ vars.CURSOR_REVIEWER_MODEL }}
           CURSOR_REVIEWER_STACK: ${{ vars.CURSOR_REVIEWER_STACK }}
+          # Harness / skills are not product code; keeps PR diff review focused on src/ + test/
+          CURSOR_REVIEWER_EXTRA_EXCLUDE_PATTERNS: .agents/**,.tmp-cursor-reviewer/**
         run: |
           set -euo pipefail
+          LOG="${RUNNER_TEMP}/cursor-reviewer.log"
+          set +e
           curl -fsSL https://raw.githubusercontent.com/jpolvora/cursor-reviewer/main/run.sh | bash -s -- \
             --gh \
             --pr-id ${{ github.event.pull_request.number }} \
             --source-branch refs/heads/${{ github.event.pull_request.head.ref }} \
-            --target-branch refs/heads/main
+            --target-branch refs/heads/main 2>&1 | tee "$LOG"
+          RC=${PIPESTATUS[1]}
+          set -e
+          if [ "$RC" -ne 0 ]; then
+            if grep -q 'pull_request_review_thread.line' "$LOG" && grep -q 'could not be resolved' "$LOG"; then
+              echo "::warning::Cursor Reviewer could not anchor one or more comments to the PR diff (GitHub 422). Findings may be partial; fix upstream line mapping or re-run. See cursor-reviewer github provider."
+              exit 0
+            fi
+            exit "$RC"
+          fi

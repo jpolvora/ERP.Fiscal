@@ -1,0 +1,12 @@
+{
+  "name": "erp-fiscal",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "security:pre-commit": "bash scripts/pre-commit-security-check.sh",
+    "security:audit-history": "bash scripts/audit-history-secrets.sh --install-gitleaks"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7"
+  }
+}

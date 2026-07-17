@@ -4,37 +4,92 @@
 > 
 > - **Visão geral do repositório:** [`README.md`](README.md).
 > - **Documentação PlugNotas (API/Integração):** [`docs/README.md`](docs/README.md).
-> - **Skills e Diretrizes do Agente:** consulte o [Índice de Skills e Customizações](#skills-e-customizações-indice) abaixo.
+> - **Segurança (segredos, Husky, auditoria Git):** [`docs/security/README.md`](docs/security/README.md).
+> - **Skills de produto (este repo):** consulte o [Índice de Skills e Customizações](#skills-e-customizações-indice) abaixo.
+> - **Catálogo de skills do workflow (packaged):** [`.agents/AGENTS.md`](.agents/AGENTS.md) — `spec-to-pr`, pipeline `00`–`11`, providers, reviews portáteis.
 
 Biblioteca de integração fiscal (NF-e via **PlugNotas**), consumidor-agnóstica. Stack: **ABP Module (.NET 10)**, backend-only, **sem EF Core, sem banco, sem entidades de domínio dos consumidores**.
 
 ---
 
+## Skill loading (mandatory)
+
+| Skill | Trigger | Path |
+|:---|:---|:---|
+| `karpathy-guidelines` | Every prompt (surgical changes) | [`.agents/skills/karpathy-guidelines/SKILL.md`](.agents/skills/karpathy-guidelines/SKILL.md) |
+| `gabarito` | Every prompt (response guidelines) | [`.agents/skills/gabarito/SKILL.md`](.agents/skills/gabarito/SKILL.md) |
+| `caveman` | Every prompt (compression; default **full**) | [`.agents/skills/caveman/SKILL.md`](.agents/skills/caveman/SKILL.md) |
+| `sync-plugnotas-docs` | Features / integração PlugNotas / docs | [`.agents/skills/sync-plugnotas-docs/SKILL.md`](.agents/skills/sync-plugnotas-docs/SKILL.md) |
+| `security-check` | Before commit / end of task / `/security-check` | [`.agents/skills/security-check/SKILL.md`](.agents/skills/security-check/SKILL.md) |
+| `self-learning` | Every task completion (anti-regression) | [`.agents/skills/self-learning/SKILL.md`](.agents/skills/self-learning/SKILL.md) |
+| `changelog` | Every task completion | [`.agents/skills/changelog/SKILL.md`](.agents/skills/changelog/SKILL.md) |
+| Workflow catalog | On demand (`/spec-to-pr`, reviews, ship, …) | [`.agents/AGENTS.md`](.agents/AGENTS.md) |
+
+**Cursor rules (Layer 0):** [`security-check.mdc`](.cursor/rules/security-check.mdc) · [`plugnotas-docs-sync.mdc`](.cursor/rules/plugnotas-docs-sync.mdc) · [`ask-question-gates.mdc`](.cursor/rules/ask-question-gates.mdc) (workflow gates → native `AskQuestion`; see [`.agents/skills/shared/gates.md`](.agents/skills/shared/gates.md)).
+
+**Language:** conversational replies follow **pt-BR** (see Sempre), unless the user asks otherwise. Skill file bodies and pipeline artifacts stay **en-us** for portable packaged skills. Harness audits (`check-harness`) reply in **en-us**.
+
+**Completion criterion:** before first reply, load every “Every prompt” row above; before declaring a coding task done, run `security-check` + `self-learning` + `changelog` as applicable.
+
+## Precedence
+
+1. Explicit user instructions for this turn  
+2. This file (`AGENTS.md`) — product invariants + Skill loading  
+3. Packaged catalog [`.agents/AGENTS.md`](.agents/AGENTS.md) — workflow routing  
+4. Resolved guardrails ([External dependencies](#external-dependencies))  
+5. Auto-load skills: `karpathy-guidelines` (scope) → `gabarito` (tone) → `caveman` (compression; keep technical accuracy)  
+6. Task-specific skills from the workflow catalog  
+
+## Opt-outs
+
+| Phrase | Effect |
+|:---|:---|
+| `stop caveman` / `normal mode` | Disable caveman compression for the session |
+| `stop gabarito` | Disable gabarito response guidelines |
+| `skip karpathy` / `skip senior-developer` | Skip surgical-scope / guardrails skill when explicitly opted out |
+
+## External dependencies
+
+Portable resolution (first match): see [`.agents/AGENTS.md` § External dependencies](.agents/AGENTS.md#external-dependencies). Config: `.agents/skills/shared/config.json` (from `config.json.example`; gitignored).
+
+| Dependency | Resolve (first match) |
+|:---|:---|
+| `senior-developer` | `config.json` → `rules.seniorDeveloper` → local skill → `.cursor/rules/senior-developer.mdc` → global/user skill |
+| `karpathy-guidelines` | `config.json` → `rules.karpathyGuidelines` → [`.agents/skills/karpathy-guidelines/SKILL.md`](.agents/skills/karpathy-guidelines/SKILL.md) |
+| Stack companion | `config.json` → `rules.stackFile` (default `.agents/skills/shared/stack.md`) |
+
+**Code review proof:** use the checklist from the resolved `senior-developer` skill when present; otherwise apply evidence-based review from `code-review` / `06-code-review` as routed below.
+
+---
+
 ## Skills e Customizações (Índice)
+
+Skills de **produto** deste repositório. Pipeline / providers / reviews portáteis: [`.agents/AGENTS.md`](.agents/AGENTS.md).
 
 | Skill / Diretriz | Arquivo | Propósito e Contexto de Uso |
 |:---|:---|:---|
-| **sync-plugnotas-docs** | [`.agents/skills/sync-plugnotas-docs/SKILL.md`](file:///.agents/skills/sync-plugnotas-docs/SKILL.md) | **[Sempre neste repo]** Consulta [docs.plugnotas.com.br](https://docs.plugnotas.com.br), atualiza `docs/plugnotas/` no formato local (índice, progressive disclosure) e sugere melhorias. **Obrigatória** ao implementar features, corrigir bugs de integração ou sincronizar documentação. Regra Cursor: [`.cursor/rules/plugnotas-docs-sync.mdc`](.cursor/rules/plugnotas-docs-sync.mdc). |
-| **code-review** | [`.agents/skills/code-review/SKILL.md`](file:///.agents/skills/code-review/SKILL.md) | Regras para execução de revisão de código local rigorosa comparando a branch atual com a principal. |
-| **karpathy-guidelines** | [`.agents/skills/karpathy-guidelines/SKILL.md`](file:///.agents/skills/karpathy-guidelines/SKILL.md) | Boas práticas de codificação para evitar alucinações e erros comuns de LLMs. |
-| **consume-erp-fiscal** | [`.agents/skills/erp-fiscal-consumer/SKILL.md`](file:///.agents/skills/erp-fiscal-consumer/SKILL.md) | **[Portável para Consumidores]** Guia de integração para ERPs que consomem esta biblioteca. Ensina a instalar/atualizar via NuGet/GitHub Packages, integrar com ABP, e gerenciar as fronteiras rígidas de código (domínio especializado local vs lógica fiscal neutra). |
-| **security-check** | [`.agents/skills/security-check/SKILL.md`](file:///.agents/skills/security-check/SKILL.md) | **[Sempre neste repo]** Checagem contra vazamento de segredos, credenciais, chaves API e dados sensíveis antes de propor commits e concluir tarefas. |
-| **release-nuget-package** | [`.agents/skills/release-nuget-package/SKILL.md`](file:///.agents/skills/release-nuget-package/SKILL.md) | **[Este repo]** Publicação automatizada dos pacotes NuGet (`ERP.Fiscal.Abstractions`, `ERP.Fiscal.PlugNotas`): resolve versão, dispara `Deploy Main`, tag, GitHub Release e validação em GitHub Packages / NuGet.org. Script: `scripts/release-nuget.sh`. |
+| **sync-plugnotas-docs** | [`.agents/skills/sync-plugnotas-docs/SKILL.md`](.agents/skills/sync-plugnotas-docs/SKILL.md) | **[Sempre neste repo]** Consulta [docs.plugnotas.com.br](https://docs.plugnotas.com.br), atualiza `docs/plugnotas/` no formato local (índice, progressive disclosure) e sugere melhorias. **Obrigatória** ao implementar features, corrigir bugs de integração ou sincronizar documentação. Regra Cursor: [`.cursor/rules/plugnotas-docs-sync.mdc`](.cursor/rules/plugnotas-docs-sync.mdc). |
+| **code-review** | [`.agents/skills/code-review/SKILL.md`](.agents/skills/code-review/SKILL.md) | Review local **ERP.Fiscal** (lib PlugNotas / .NET 10). Para Step 9 do `spec-to-pr`, usar `06-code-review` no [catálogo packaged](.agents/AGENTS.md). |
+| **karpathy-guidelines** | [`.agents/skills/karpathy-guidelines/SKILL.md`](.agents/skills/karpathy-guidelines/SKILL.md) | Boas práticas de codificação para evitar alucinações e erros comuns de LLMs. |
+| **consume-erp-fiscal** | [`.agents/skills/erp-fiscal-consumer/SKILL.md`](.agents/skills/erp-fiscal-consumer/SKILL.md) | **[Portável para Consumidores]** Guia de integração para ERPs que consomem esta biblioteca. Ensina a instalar/atualizar via NuGet/GitHub Packages, integrar com ABP, e gerenciar as fronteiras rígidas de código (domínio especializado local vs lógica fiscal neutra). |
+| **security-check** | [`.agents/skills/security-check/SKILL.md`](.agents/skills/security-check/SKILL.md) | **[Sempre neste repo — canônico]** Segredos, credenciais, PII — Husky + docs. Scanner portátil on-demand: `secrets-leak-review` no [catálogo packaged](.agents/AGENTS.md). Índice: [`docs/security/README.md`](docs/security/README.md). Regra Cursor: [`.cursor/rules/security-check.mdc`](.cursor/rules/security-check.mdc). |
+| **release-nuget-package** | [`.agents/skills/release-nuget-package/SKILL.md`](.agents/skills/release-nuget-package/SKILL.md) | **[Este repo]** Publicação automatizada dos pacotes NuGet (`ERP.Fiscal.Abstractions`, `ERP.Fiscal.PlugNotas`): resolve versão, dispara `Deploy Main`, tag, GitHub Release e validação em GitHub Packages / NuGet.org. Script: `scripts/release-nuget.sh`. |
+| **Workflow / pipeline** | [`.agents/AGENTS.md`](.agents/AGENTS.md) | `spec-to-pr`, `spec-to-pr-lite`, skills `00`–`11`, providers, reviews portáteis, `check-harness`. |
 
 > [!TIP]
-> A skill **`consume-erp-fiscal`** deve ser copiada para a pasta `.agents/skills/consume-erp-fiscal/SKILL.md` no repositório de qualquer ERP que consuma esta lib. Isso garante que o agente trabalhando no ERP consumidor siga os padrões corretos de arquitetura.
+> A skill **`consume-erp-fiscal`** (`name:` no frontmatter) vive em [`.agents/skills/erp-fiscal-consumer/SKILL.md`](.agents/skills/erp-fiscal-consumer/SKILL.md). Copie essa pasta para o ERP consumidor (ou o path que o consumidor usar para skills), para o agente seguir as fronteiras corretas.
 
 ---
 
 ## Sempre (toda sessão)
 
-- Responder em **Português (pt-BR)**, salvo pedido contrário.
+- Responder em **Português (pt-BR)**, salvo pedido contrário (ex.: `check-harness` → en-us).
 - Mudanças **cirúrgicas** — mínimo diff que resolve o pedido.
 - Seguir padrões **ABP Framework** para módulos C# (.NET 10).
 - **Documentação PlugNotas atualizada:** ao implementar features, corrigir integração ou alterar `Contracts/`/`Providers`/HTTP, seguir a skill [`sync-plugnotas-docs`](.agents/skills/sync-plugnotas-docs/SKILL.md) — consultar o Swagger em https://docs.plugnotas.com.br, cruzar com `docs/plugnotas/`, atualizar os `.md` afetados no mesmo trabalho e sugerir melhorias quando houver lacunas.
 - Consultar a documentação PlugNotas via [`docs/README.md`](docs/README.md) (compilação local com índice); para schema completo de campos, usar o Swagger em https://docs.plugnotas.com.br
 - Aplicar **SOLID** e **DRY**; preferir interfaces e abstrações reutilizáveis.
-- **Checagem de segurança obrigatória:** antes de qualquer commit ou ao final de uma sessão, verificar se há vazamentos de chaves de API, certificados ou segredos usando a skill [`security-check`](.agents/skills/security-check/SKILL.md).
+- **Checagem de segurança obrigatória:** seguir [`docs/security/README.md`](docs/security/README.md) e a skill [`security-check`](.agents/skills/security-check/SKILL.md) — varredura uncommitted + versionados + temporários; Husky reforça o stage após `npm install`.
 
 ---
 
@@ -52,11 +107,30 @@ Biblioteca de integração fiscal (NF-e via **PlugNotas**), consumidor-agnóstic
 | Cadastro emissor/empresa | [`docs/plugnotas/03-empresa-emissor.md`](docs/plugnotas/03-empresa-emissor.md) |
 | Fluxo assíncrono NF-e | [`docs/plugnotas/04-nfe-fluxo-emissao.md`](docs/plugnotas/04-nfe-fluxo-emissao.md) |
 | Rotas HTTP NF-e | [`docs/plugnotas/05-nfe-endpoints.md`](docs/plugnotas/05-nfe-endpoints.md) |
+| Rotas e fluxo NFS-e | [`docs/plugnotas/09-nfse-endpoints.md`](docs/plugnotas/09-nfse-endpoints.md) |
 | Payload JSON (builder no ERP) | [`docs/plugnotas/06-nfe-payload-json.md`](docs/plugnotas/06-nfe-payload-json.md) |
 | Mapeamento → `ERP.Fiscal.PlugNotas` | [`docs/plugnotas/07-mapeamento-erp-fiscal.md`](docs/plugnotas/07-mapeamento-erp-fiscal.md) |
 | Consulta CNPJ/CEP (auxiliares) | [`docs/plugnotas/08-auxiliares-cnpj-cep.md`](docs/plugnotas/08-auxiliares-cnpj-cep.md) |
 
 Não carregar todos os arquivos de uma vez — seguir a tabela **"Quando usar cada documento"** em [`docs/README.md`](docs/README.md).
+
+---
+
+## Segurança (segredos e privacidade)
+
+**Ponto de entrada:** [`docs/security/README.md`](docs/security/README.md) — índice de roteamento (Husky, scripts, Gitleaks, histórico Git).
+
+**Procedimento detalhado:** skill [`security-check`](.agents/skills/security-check/SKILL.md) — carregar ao propor commit, responder `/security-check` ou investigar vazamento.
+
+| Contexto | Recurso |
+|----------|---------|
+| Índice e comandos npm | [`docs/security/README.md`](docs/security/README.md) |
+| Checklist manual (fases A–F) | [`.agents/skills/security-check/SKILL.md`](.agents/skills/security-check/SKILL.md) |
+| Bloqueio no `git commit` | `.husky/pre-commit` → `scripts/pre-commit-security-check.sh` |
+| Auditoria read-only do histórico | `npm run security:audit-history` |
+| Release / publicação NuGet | skill `security-check` + [`release-nuget-package`](.agents/skills/release-nuget-package/SKILL.md) |
+
+Não duplicar checklists de segurança fora da skill — usar links.
 
 ---
 
@@ -66,7 +140,7 @@ A lib cobre **transmissão HTTP, parsers, retry, classificação de erros, contr
 
 | Pertence à lib | Fica no ERP consumidor |
 |---|---|
-| `INfeEmissaoProvider`, `INfeIntegracaoProvider`, `INfeAuxiliaresProvider` | Agregados (`NotaFiscal`, `DocumentoFiscal`, `Emissor`/`Empresa`) |
+| `INfeEmissaoProvider`, `INfseEmissaoProvider`, `INfeIntegracaoProvider`, `INfeAuxiliaresProvider` | Agregados (`NotaFiscal`, `DocumentoFiscal`, `Emissor`/`Empresa`) |
 | Contratos JSON espelhando a API PlugNotas (`Contracts/`) | `NfePayloadBuilder` (domínio → JSON PlugNotas) |
 | `PlugNotasHttpClient`, parsers, resolvers, options | App services de orquestração + transições de estado |
 | DTOs neutros (`NfeEmissaoResult`, `NfeProviderResult`, …) | Tradução de resultados → histórico, mensagens localizadas |
@@ -111,9 +185,19 @@ Se a extração exigir conhecer **quem consome a lib**, o código está no lugar
 ERP.Fiscal/
 ├── ERP.Fiscal.slnx
 ├── common.props                    # net10.0, nullable, LangVersion latest
+├── package.json                    # Husky + npm scripts security:*
+├── .husky/pre-commit               # hook: scripts/pre-commit-security-check.sh
+├── scripts/
+│   ├── pre-commit-security-check.sh
+│   └── audit-history-secrets.sh    # auditoria histórico (read-only)
+├── docs/
+│   ├── README.md                   # índice docs (PlugNotas + roteamento)
+│   ├── security/README.md          # índice segurança
+│   └── plugnotas/                  # compilação PlugNotas
 ├── src/
 │   ├── ERP.Fiscal.Abstractions/    # zero dependências externas
 │   │   ├── INfeEmissaoProvider.cs
+│   │   ├── INfseEmissaoProvider.cs
 │   │   ├── INfeIntegracaoProvider.cs
 │   │   ├── INfeAuxiliaresProvider.cs
 │   │   ├── INfeAmbientePolicy.cs   # contrato; impl. no ERP
@@ -147,6 +231,8 @@ ERP.Fiscal/
 | Helper neutro que opera em payload/params PlugNotas ou types da própria lib | `src/ERP.Fiscal.PlugNotas/Payload/` |
 | Registro DI / módulo ABP | `PlugNotasFiscalModule.cs` |
 | Testes unitários | `test/ERP.Fiscal.PlugNotas.Tests/` espelhando a pasta de origem |
+| Script de segurança (pre-commit / auditoria) | `scripts/pre-commit-security-check.sh`, `scripts/audit-history-secrets.sh` |
+| Índice ou doc de segurança | `docs/security/README.md` (roteamento); skill `.agents/skills/security-check/SKILL.md` (procedimento) |
 
 ---
 
@@ -155,8 +241,9 @@ ERP.Fiscal/
 | Interface | Responsabilidade |
 |-----------|------------------|
 | `INfeEmissaoProvider` | Emitir, consultar, cancelar NF-e; obter XML/PDF |
+| `INfseEmissaoProvider` | Emitir, consultar, cancelar NFS-e; obter XML/PDF |
 | `INfeIntegracaoProvider` | Cadastro/consulta de certificado e emissor; sync de ambiente |
-| `INfeAuxiliaresProvider` | Consulta CNPJ/CEP (formulários de cadastro) |
+| `INfeAuxiliaresProvider` | Consulta CNPJ/CEP/municípios NFS-e (formulários de cadastro) |
 | `INfeAmbientePolicy` | Resolver ambiente efetivo (ex.: forçar Sandbox) — **implementar no ERP** |
 
 ---
@@ -295,8 +382,9 @@ curl -fsSL https://raw.githubusercontent.com/jpolvora/cursor-reviewer/main/run.s
 
 ## Referências
 
+- [`docs/security/README.md`](docs/security/README.md) — **índice** segurança (Husky, auditoria histórico, roteamento)
+- [`.agents/skills/security-check/SKILL.md`](.agents/skills/security-check/SKILL.md) — procedimento de checagem e remediação
 - [`.agents/skills/sync-plugnotas-docs/SKILL.md`](.agents/skills/sync-plugnotas-docs/SKILL.md) — sincronizar e manter `docs/plugnotas/` vs Swagger oficial
-- [`.agents/skills/security-check/SKILL.md`](.agents/skills/security-check/SKILL.md) — Checagem de segurança e prevenção de vazamento de segredos
 - [`docs/README.md`](docs/README.md) — **índice** da documentação PlugNotas compilada (carregar sob demanda)
 - [`docs/plugnotas/README.md`](docs/plugnotas/README.md) — índice detalhado PlugNotas + regra de ouro lib vs consumidor
 - [README.md](README.md) — visão geral e quick start
