@@ -81,6 +81,18 @@ Cada ERP mantém enum local (`AmbienteFiscal`) + `NfeAmbienteMapper` (extensões
 
 `EmitirAsync` direto: apenas testes ou reenvios customizados.
 
+## Emissão NFS-e (fluxo canônico)
+
+1. Montar JSON no ERP (builder NFS-e a partir do domínio).
+2. Validar: `PlugNotasNfsePayloadReadiness.Avaliar(doc)`.
+3. Resolver ambiente: `INfeAmbientePolicy.GetAmbienteEfetivoAsync`.
+4. Transmitir: **`INfseEmissaoProvider.EmitirCompletoAsync(payload, cnpj, idIntegracao, ambiente)`**.
+5. Persistir `NfeProcessamentoResult` (status, código verificação em `ChaveAcesso`, XML/PDF, histórico, blobs).
+
+Não há helper de `config.producao` no payload NFS-e — o ambiente afeta só o host/API key.
+
+Detalhes de rotas: [`../plugnotas/09-nfse-endpoints.md`](../plugnotas/09-nfse-endpoints.md).
+
 ## Integração emissor/certificado
 
 - Builder local: `NfeEmissorPayloadBuilder` → `NfeEmissorData`.
@@ -118,6 +130,7 @@ Padrão opcional; Marchante/Florestal injetam providers diretamente.
 | HTTP, retry, parsers | Payload builders |
 | `INfe*Provider` | App services de orquestração |
 | `PlugNotasDefaultAmbientePolicy` | `IFiscalAmbientePolicy` (UI) |
-| `PlugNotasNfePayloadReadiness` | Validação de domínio pré-montagem |
-| Contratos JSON PlugNotas | Mapeamento domínio → contratos |
-| `NfeEmissaoMensagemHelper` | Mensagens localizadas (chaves `Nfe:*`) |
+| `PlugNotasNfePayloadReadiness` / `PlugNotasNfsePayloadReadiness` | Validação de domínio pré-montagem |
+| Contratos JSON PlugNotas (NF-e e NFS-e) | Mapeamento domínio → contratos |
+| `NfeEmissaoMensagemHelper` | Mensagens localizadas (chaves `Nfe:*` / `Nfse:*`) |
+| `INfseEmissaoProvider` | Orquestração NFS-e + builder de payload de serviço |

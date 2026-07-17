@@ -32,6 +32,17 @@ public class PlugNotasNfeDocumentPayload
     public List<PlugNotasNfePagamentoPayload>? Pagamentos { get; set; }
     public PlugNotasNfeResponsavelTecnicoPayload? ResponsavelTecnico { get; set; }
     public PlugNotasNfeTransportePayload? Transporte { get; set; }
+
+    /// <summary>Totalizadores do documento (workaround CST ICMS 51 — ver <see cref="Payload.PlugNotasNfeTotalIcmsCst51Helper"/>). Omitido quando <c>null</c>.</summary>
+    public PlugNotasNfeTotalPayload? Total { get; set; }
+}
+
+/// <summary>Totalizadores NF-e no JSON PlugNotas (agrupador <c>total</c>).</summary>
+public class PlugNotasNfeTotalPayload
+{
+    /// <summary>Total do ICMS (vICMS) — informado explicitamente quando há item CST 51. Casing Swagger: <c>valorIcms</c>.</summary>
+    [JsonPropertyName("valorIcms")]
+    public decimal? ValorIcms { get; set; }
 }
 
 public class PlugNotasNfeEmitentePayload

@@ -29,7 +29,8 @@ api.plugnotas.com.br | api.sandbox.plugnotas.com.br
 
 | Interface | Responsabilidade | Provider |
 |-----------|------------------|----------|
-| `INfeEmissaoProvider` | Emitir, consultar, cancelar, XML, PDF | `PlugNotasNfeEmissaoProvider` |
+| `INfeEmissaoProvider` | Emitir, consultar, cancelar, XML, PDF (NF-e) | `PlugNotasNfeEmissaoProvider` |
+| `INfseEmissaoProvider` | Emitir, consultar, cancelar, XML, PDF (NFS-e) | `PlugNotasNfseEmissaoProvider` |
 | `INfeIntegracaoProvider` | Certificado + empresa + sync ambiente | `PlugNotasIntegracaoProvider` |
 | `INfeAuxiliaresProvider` | CNPJ, CEP, municípios NFS-e | `PlugNotasAuxiliaresProvider` |
 | `INfeDestinadaProvider` | NF-e destinadas (DF-e) | `PlugNotasDestinadaProvider` |
@@ -56,10 +57,18 @@ Registro: `PlugNotasFiscalModule` — `[DependsOn(typeof(PlugNotasFiscalModule))
 | GET `/nfe/{id}/pdf` | `ObterPdfNfePorIdAsync` | `ObterPdfAsync` |
 | GET `/cnpj/{cnpj}` | — (`PlugNotasAuxiliaresProvider`) | `ConsultarCnpjAsync` |
 | GET `/cep/{cep}` | — (`PlugNotasAuxiliaresProvider`) | `ConsultarCepAsync` |
+| POST `/nfse` | `EmitirNfseAsync` (+ retry) | `INfseEmissaoProvider.EmitirAsync` |
+| GET `/nfse/consultar/{id}` | `ObterNfseResumoPorIdAsync` | `ConsultarPorIdAsync` |
+| GET `/nfse/{cnpj}/{idIntegracao}/resumo` | `ObterNfseResumoPorCnpjIdIntegracaoAsync` | `ConsultarPorIdIntegracaoAsync` |
+| POST `/nfse/{id}/cancelamento` | `CancelarNfseAsync` | `CancelarAsync` |
+| GET `/nfse/xml/{id}` | `ObterXmlNfsePorIdAsync` | `ObterXmlAsync` |
+| GET `/nfse/pdf/{id}` | `ObterPdfNfsePorIdAsync` | `ObterPdfAsync` |
 | GET `/nfse/cidades` | — (`PlugNotasAuxiliaresProvider`, cache) | `ConsultarMunicipiosAsync` |
 | GET `/nfse/cidades/{codigoIbge}` | — (`PlugNotasAuxiliaresProvider`) | `ConsultarMunicipioPorIbgeAsync` |
 
-Cliente interno NF-e/cadastro: `PlugNotasHttpClient`. Auxiliares: `PlugNotasAuxiliaresProvider` com `HttpClient` próprio.
+Cliente interno NF-e/NFS-e/cadastro: `PlugNotasHttpClient`. Auxiliares: `PlugNotasAuxiliaresProvider` com `HttpClient` próprio.
+
+Contratos JSON NFS-e: `PlugNotasNfseDocumentPayload` (`Contracts/`). Readiness: `PlugNotasNfsePayloadReadiness`. Doc de rotas: [`09-nfse-endpoints.md`](09-nfse-endpoints.md).
 
 ---
 
@@ -98,11 +107,13 @@ DTOs neutros: `NfeEmissaoResult`, `NfeConsultaResult`, `NfeProviderResult`, etc.
 |--------|--------|
 | `PlugNotasNfePayloadAmbienteHelper` | Injeta `config.producao` e `intermediador` no array JSON |
 | `PlugNotasNfeTributosPayloadHelper` | Monta `itens[].tributos` (Simples Nacional / regime normal) |
+| `PlugNotasNfeCodigoBeneficioFiscalHelper` | Normaliza e omite cBenef conforme o CST |
 | `PlugNotasNfeTotalIcmsCst51Helper` | Preenche `total.valorIcms` quando há item CST ICMS 51 |
 | `PlugNotasNfeNaturezaCamposHelper` | Regras `finalidade` (1–6) e combinação `presencial`/`finalidade` |
-| `PlugNotasNfePayloadReadiness` | Validação mínima do documento antes de transmitir (inclui natureza) |
+| `PlugNotasNfePayloadReadiness` | Validação mínima do documento NF-e antes de transmitir (inclui natureza) |
+| `PlugNotasNfsePayloadReadiness` | Validação estrutural mínima do documento NFS-e antes de transmitir |
 
-Usado pelo **ERP** antes de chamar `INfeEmissaoProvider.EmitirAsync` — não depende de entidades.
+Usado pelo **ERP** antes de chamar `INfeEmissaoProvider` / `INfseEmissaoProvider` — não depende de entidades.
 
 ---
 

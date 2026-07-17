@@ -53,6 +53,7 @@ Biblioteca de integração fiscal (NF-e via **PlugNotas**), consumidor-agnóstic
 | Cadastro emissor/empresa | [`docs/plugnotas/03-empresa-emissor.md`](docs/plugnotas/03-empresa-emissor.md) |
 | Fluxo assíncrono NF-e | [`docs/plugnotas/04-nfe-fluxo-emissao.md`](docs/plugnotas/04-nfe-fluxo-emissao.md) |
 | Rotas HTTP NF-e | [`docs/plugnotas/05-nfe-endpoints.md`](docs/plugnotas/05-nfe-endpoints.md) |
+| Rotas e fluxo NFS-e | [`docs/plugnotas/09-nfse-endpoints.md`](docs/plugnotas/09-nfse-endpoints.md) |
 | Payload JSON (builder no ERP) | [`docs/plugnotas/06-nfe-payload-json.md`](docs/plugnotas/06-nfe-payload-json.md) |
 | Mapeamento → `ERP.Fiscal.PlugNotas` | [`docs/plugnotas/07-mapeamento-erp-fiscal.md`](docs/plugnotas/07-mapeamento-erp-fiscal.md) |
 | Consulta CNPJ/CEP (auxiliares) | [`docs/plugnotas/08-auxiliares-cnpj-cep.md`](docs/plugnotas/08-auxiliares-cnpj-cep.md) |
@@ -85,7 +86,7 @@ A lib cobre **transmissão HTTP, parsers, retry, classificação de erros, contr
 
 | Pertence à lib | Fica no ERP consumidor |
 |---|---|
-| `INfeEmissaoProvider`, `INfeIntegracaoProvider`, `INfeAuxiliaresProvider` | Agregados (`NotaFiscal`, `DocumentoFiscal`, `Emissor`/`Empresa`) |
+| `INfeEmissaoProvider`, `INfseEmissaoProvider`, `INfeIntegracaoProvider`, `INfeAuxiliaresProvider` | Agregados (`NotaFiscal`, `DocumentoFiscal`, `Emissor`/`Empresa`) |
 | Contratos JSON espelhando a API PlugNotas (`Contracts/`) | `NfePayloadBuilder` (domínio → JSON PlugNotas) |
 | `PlugNotasHttpClient`, parsers, resolvers, options | App services de orquestração + transições de estado |
 | DTOs neutros (`NfeEmissaoResult`, `NfeProviderResult`, …) | Tradução de resultados → histórico, mensagens localizadas |
@@ -142,6 +143,7 @@ ERP.Fiscal/
 ├── src/
 │   ├── ERP.Fiscal.Abstractions/    # zero dependências externas
 │   │   ├── INfeEmissaoProvider.cs
+│   │   ├── INfseEmissaoProvider.cs
 │   │   ├── INfeIntegracaoProvider.cs
 │   │   ├── INfeAuxiliaresProvider.cs
 │   │   ├── INfeAmbientePolicy.cs   # contrato; impl. no ERP
@@ -185,6 +187,7 @@ ERP.Fiscal/
 | Interface | Responsabilidade |
 |-----------|------------------|
 | `INfeEmissaoProvider` | Emitir, consultar, cancelar NF-e; obter XML/PDF |
+| `INfseEmissaoProvider` | Emitir, consultar, cancelar NFS-e; obter XML/PDF |
 | `INfeIntegracaoProvider` | Cadastro/consulta de certificado e emissor; sync de ambiente |
 | `INfeAuxiliaresProvider` | Consulta CNPJ/CEP/municípios NFS-e (formulários de cadastro) |
 | `INfeAmbientePolicy` | Resolver ambiente efetivo (ex.: forçar Sandbox) — **implementar no ERP** |

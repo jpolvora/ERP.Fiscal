@@ -27,6 +27,7 @@ public static class PlugNotasServiceCollectionExtensions
             .ConfigureHttpClient(c => c.Timeout = TimeSpan.FromSeconds(30));
 
         services.AddTransient<INfeEmissaoProvider, PlugNotasNfeEmissaoProvider>();
+        services.AddTransient<INfseEmissaoProvider, PlugNotasNfseEmissaoProvider>();
         services.AddTransient<INfeIntegracaoProvider, PlugNotasIntegracaoProvider>();
         services.AddTransient<INfeDestinadaProvider, PlugNotasDestinadaProvider>();
 

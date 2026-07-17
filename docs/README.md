@@ -2,7 +2,7 @@
 
 > **Progressive disclosure:** este arquivo é o **único ponto de entrada** para agentes de IA. Carregue apenas o documento indicado pelo contexto da tarefa — não leia tudo de uma vez.
 >
-> **Última verificação:** 2026-07-06 — fonte [docs.plugnotas.com.br](https://docs.plugnotas.com.br). Manutenção: skill [sync-plugnotas-docs](../.agents/skills/sync-plugnotas-docs/SKILL.md).
+> **Última verificação:** 2026-07-08 — fonte [docs.plugnotas.com.br](https://docs.plugnotas.com.br). Manutenção: skill [sync-plugnotas-docs](../.agents/skills/sync-plugnotas-docs/SKILL.md).
 
 Biblioteca compartilhada de integração fiscal via **PlugNotas** (TecnoSpeed). Stack: ABP (.NET 10), backend-only.
 
@@ -18,10 +18,11 @@ Biblioteca compartilhada de integração fiscal via **PlugNotas** (TecnoSpeed). 
 | Cadastro de emissor/empresa no provedor | [`plugnotas/03-empresa-emissor.md`](plugnotas/03-empresa-emissor.md) |
 | Fluxo assíncrono de emissão NF-e | [`plugnotas/04-nfe-fluxo-emissao.md`](plugnotas/04-nfe-fluxo-emissao.md) |
 | Rotas HTTP NF-e (POST/GET, cancelamento, XML/PDF) | [`plugnotas/05-nfe-endpoints.md`](plugnotas/05-nfe-endpoints.md) |
-| Montar payload JSON NF-e (builder no ERP) | [`plugnotas/06-nfe-payload-json.md`](plugnotas/06-nfe-payload-json.md) |
-| Implementar/alterar `ERP.Fiscal.PlugNotas` | [`plugnotas/07-mapeamento-erp-fiscal.md`](plugnotas/07-mapeamento-erp-fiscal.md) |
+| Montar payload JSON NF-e (builder no ERP) | [`plugnotas/06-nfe-payload-json.md`](plugnotas/06-nfe-payload-json.md) — campos de cabeçalho (`finalidade`, `presencial`), tributos, `total.valorIcms` |
+| Implementar/alterar `ERP.Fiscal.PlugNotas` | [`plugnotas/07-mapeamento-erp-fiscal.md`](plugnotas/07-mapeamento-erp-fiscal.md) — helpers de payload/readiness |
 | Padronizar consumo em ERP consumidor (Marchante, Florestal, FiscalWR) | [`consumers/padrao-integracao.md`](consumers/padrao-integracao.md) |
 | Consulta CNPJ/CEP (auxiliares) | [`plugnotas/08-auxiliares-cnpj-cep.md`](plugnotas/08-auxiliares-cnpj-cep.md) |
+| Endpoints e fluxo NFS-e | [`plugnotas/09-nfse-endpoints.md`](plugnotas/09-nfse-endpoints.md) |
 | Segurança — segredos, Husky, auditoria Git | [`security/README.md`](security/README.md) → skill [`security-check`](../.agents/skills/security-check/SKILL.md) |
 | Antes de commit / release / `/security-check` | [`security/README.md`](security/README.md) |
 
