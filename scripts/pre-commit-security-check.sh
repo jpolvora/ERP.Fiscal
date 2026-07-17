@@ -72,6 +72,9 @@ FILTERED="$(printf '%s\n' "$FILTERED" | grep -Ev -- \
 # Definições de padrão dentro do próprio script de checagem
 FILTERED="$(printf '%s\n' "$FILTERED" | grep -Ev -- 'check_pattern |FORBIDDEN_PATH_REGEX' || true)"
 
+# Padrões de varredura documentados em skills (ex.: secrets-leak-review rg recipes)
+FILTERED="$(printf '%s\n' "$FILTERED" | grep -Ev -- 'rg -l --no-ignore.*(password=|passwd=|pwd=|apiKey=|api_key=|secretKey=|secret_key=)' || true)"
+
 if [[ -z "$FILTERED" ]]; then
   echo "pre-commit security-check: OK"
   exit 0

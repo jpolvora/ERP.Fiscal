@@ -48,3 +48,6 @@ packages/
 artifacts/
 nuget.config.local
 samples/nuget.config.local
+
+# Workflow shared config (consumer-owned; never commit)
+.agents/skills/shared/config.json

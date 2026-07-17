@@ -137,7 +137,7 @@ Formato mínimo do relatório:
 
 Índice: [`docs/security/README.md`](../../../docs/security/README.md) § Automação.
 
-Em cada `git commit`, o hook [`.husky/pre-commit`](../../.husky/pre-commit) executa [`scripts/pre-commit-security-check.sh`](../../scripts/pre-commit-security-check.sh) sobre **arquivos staged**. Setup único: `npm install` na raiz do repo (ativa Husky via `prepare`). Teste: `npm run security:pre-commit`.
+Em cada `git commit`, o hook [`.husky/pre-commit`](../../../.husky/pre-commit) executa [`scripts/pre-commit-security-check.sh`](../../../scripts/pre-commit-security-check.sh) sobre **arquivos staged**. Setup único: `npm install` na raiz do repo (ativa Husky via `prepare`). Teste: `npm run security:pre-commit`.
 
 O hook complementa — **não substitui** — a varredura manual das fases A–E (tracked + temporários ignorados).
 
@@ -145,7 +145,7 @@ O hook complementa — **não substitui** — a varredura manual das fases A–E
 
 Índice: [`docs/security/README.md`](../../../docs/security/README.md) § Automação.
 
-Script [`scripts/audit-history-secrets.sh`](../../scripts/audit-history-secrets.sh): varre HEAD, histórico Git, temporários, Gitleaks (opcional), `git-filter-repo --analyze` e `--dry-run` de remediação. Relatórios em `.security-audit/` (gitignored).
+Script [`scripts/audit-history-secrets.sh`](../../../scripts/audit-history-secrets.sh): varre HEAD, histórico Git, temporários, Gitleaks (opcional), `git-filter-repo --analyze` e `--dry-run` de remediação. Relatórios em `.security-audit/` (gitignored).
 
 ```bash
 npm run security:audit-history

@@ -5,31 +5,83 @@
 > - **Visão geral do repositório:** [`README.md`](README.md).
 > - **Documentação PlugNotas (API/Integração):** [`docs/README.md`](docs/README.md).
 > - **Segurança (segredos, Husky, auditoria Git):** [`docs/security/README.md`](docs/security/README.md).
-> - **Skills e Diretrizes do Agente:** consulte o [Índice de Skills e Customizações](#skills-e-customizações-indice) abaixo.
+> - **Skills de produto (este repo):** consulte o [Índice de Skills e Customizações](#skills-e-customizações-indice) abaixo.
+> - **Catálogo de skills do workflow (packaged):** [`.agents/AGENTS.md`](.agents/AGENTS.md) — `spec-to-pr`, pipeline `00`–`11`, providers, reviews portáteis.
 
 Biblioteca de integração fiscal (NF-e via **PlugNotas**), consumidor-agnóstica. Stack: **ABP Module (.NET 10)**, backend-only, **sem EF Core, sem banco, sem entidades de domínio dos consumidores**.
 
 ---
 
+## Skill loading (mandatory)
+
+| Skill | Trigger | Path |
+|:---|:---|:---|
+| `karpathy-guidelines` | Every prompt (surgical changes) | [`.agents/skills/karpathy-guidelines/SKILL.md`](.agents/skills/karpathy-guidelines/SKILL.md) |
+| `gabarito` | Every prompt (response guidelines) | [`.agents/skills/gabarito/SKILL.md`](.agents/skills/gabarito/SKILL.md) |
+| `caveman` | Every prompt (compression; default **full**) | [`.agents/skills/caveman/SKILL.md`](.agents/skills/caveman/SKILL.md) |
+| `sync-plugnotas-docs` | Features / integração PlugNotas / docs | [`.agents/skills/sync-plugnotas-docs/SKILL.md`](.agents/skills/sync-plugnotas-docs/SKILL.md) |
+| `security-check` | Before commit / end of task / `/security-check` | [`.agents/skills/security-check/SKILL.md`](.agents/skills/security-check/SKILL.md) |
+| `self-learning` | Every task completion (anti-regression) | [`.agents/skills/self-learning/SKILL.md`](.agents/skills/self-learning/SKILL.md) |
+| `changelog` | Every task completion | [`.agents/skills/changelog/SKILL.md`](.agents/skills/changelog/SKILL.md) |
+| Workflow catalog | On demand (`/spec-to-pr`, reviews, ship, …) | [`.agents/AGENTS.md`](.agents/AGENTS.md) |
+
+**Language:** conversational replies follow **pt-BR** (see Sempre), unless the user asks otherwise. Skill file bodies and pipeline artifacts stay **en-us** for portable packaged skills. Harness audits (`check-harness`) reply in **en-us**.
+
+**Completion criterion:** before first reply, load every “Every prompt” row above; before declaring a coding task done, run `security-check` + `self-learning` + `changelog` as applicable.
+
+## Precedence
+
+1. Explicit user instructions for this turn  
+2. This file (`AGENTS.md`) — product invariants + Skill loading  
+3. Packaged catalog [`.agents/AGENTS.md`](.agents/AGENTS.md) — workflow routing  
+4. Resolved guardrails ([External dependencies](#external-dependencies))  
+5. Auto-load skills: `karpathy-guidelines` (scope) → `gabarito` (tone) → `caveman` (compression; keep technical accuracy)  
+6. Task-specific skills from the workflow catalog  
+
+## Opt-outs
+
+| Phrase | Effect |
+|:---|:---|
+| `stop caveman` / `normal mode` | Disable caveman compression for the session |
+| `stop gabarito` | Disable gabarito response guidelines |
+| `skip karpathy` / `skip senior-developer` | Skip surgical-scope / guardrails skill when explicitly opted out |
+
+## External dependencies
+
+Portable resolution (first match): see [`.agents/AGENTS.md` § External dependencies](.agents/AGENTS.md#external-dependencies). Config: `.agents/skills/shared/config.json` (from `config.json.example`; gitignored).
+
+| Dependency | Resolve (first match) |
+|:---|:---|
+| `senior-developer` | `config.json` → `rules.seniorDeveloper` → local skill → `.cursor/rules/senior-developer.mdc` → global/user skill |
+| `karpathy-guidelines` | `config.json` → `rules.karpathyGuidelines` → [`.agents/skills/karpathy-guidelines/SKILL.md`](.agents/skills/karpathy-guidelines/SKILL.md) |
+| Stack companion | `config.json` → `rules.stackFile` (default `.agents/skills/shared/stack.md`) |
+
+**Code review proof:** use the checklist from the resolved `senior-developer` skill when present; otherwise apply evidence-based review from `code-review` / `06-code-review` as routed below.
+
+---
+
 ## Skills e Customizações (Índice)
+
+Skills de **produto** deste repositório. Pipeline / providers / reviews portáteis: [`.agents/AGENTS.md`](.agents/AGENTS.md).
 
 | Skill / Diretriz | Arquivo | Propósito e Contexto de Uso |
 |:---|:---|:---|
-| **sync-plugnotas-docs** | [`.agents/skills/sync-plugnotas-docs/SKILL.md`](file:///.agents/skills/sync-plugnotas-docs/SKILL.md) | **[Sempre neste repo]** Consulta [docs.plugnotas.com.br](https://docs.plugnotas.com.br), atualiza `docs/plugnotas/` no formato local (índice, progressive disclosure) e sugere melhorias. **Obrigatória** ao implementar features, corrigir bugs de integração ou sincronizar documentação. Regra Cursor: [`.cursor/rules/plugnotas-docs-sync.mdc`](.cursor/rules/plugnotas-docs-sync.mdc). |
-| **code-review** | [`.agents/skills/code-review/SKILL.md`](file:///.agents/skills/code-review/SKILL.md) | Regras para execução de revisão de código local rigorosa comparando a branch atual com a principal. |
-| **karpathy-guidelines** | [`.agents/skills/karpathy-guidelines/SKILL.md`](file:///.agents/skills/karpathy-guidelines/SKILL.md) | Boas práticas de codificação para evitar alucinações e erros comuns de LLMs. |
-| **consume-erp-fiscal** | [`.agents/skills/erp-fiscal-consumer/SKILL.md`](file:///.agents/skills/erp-fiscal-consumer/SKILL.md) | **[Portável para Consumidores]** Guia de integração para ERPs que consomem esta biblioteca. Ensina a instalar/atualizar via NuGet/GitHub Packages, integrar com ABP, e gerenciar as fronteiras rígidas de código (domínio especializado local vs lógica fiscal neutra). |
-| **security-check** | [`.agents/skills/security-check/SKILL.md`](file:///.agents/skills/security-check/SKILL.md) | **[Sempre neste repo]** Segredos, credenciais, PII e privacidade de consumidores — antes de commits e ao concluir tarefas. Índice: [`docs/security/README.md`](docs/security/README.md). Automação: Husky + `scripts/pre-commit-security-check.sh`; auditoria histórico: `scripts/audit-history-secrets.sh`. Regra Cursor: [`.cursor/rules/security-check.mdc`](.cursor/rules/security-check.mdc). |
-| **release-nuget-package** | [`.agents/skills/release-nuget-package/SKILL.md`](file:///.agents/skills/release-nuget-package/SKILL.md) | **[Este repo]** Publicação automatizada dos pacotes NuGet (`ERP.Fiscal.Abstractions`, `ERP.Fiscal.PlugNotas`): resolve versão, dispara `Deploy Main`, tag, GitHub Release e validação em GitHub Packages / NuGet.org. Script: `scripts/release-nuget.sh`. |
+| **sync-plugnotas-docs** | [`.agents/skills/sync-plugnotas-docs/SKILL.md`](.agents/skills/sync-plugnotas-docs/SKILL.md) | **[Sempre neste repo]** Consulta [docs.plugnotas.com.br](https://docs.plugnotas.com.br), atualiza `docs/plugnotas/` no formato local (índice, progressive disclosure) e sugere melhorias. **Obrigatória** ao implementar features, corrigir bugs de integração ou sincronizar documentação. Regra Cursor: [`.cursor/rules/plugnotas-docs-sync.mdc`](.cursor/rules/plugnotas-docs-sync.mdc). |
+| **code-review** | [`.agents/skills/code-review/SKILL.md`](.agents/skills/code-review/SKILL.md) | Review local **ERP.Fiscal** (lib PlugNotas / .NET 10). Para Step 9 do `spec-to-pr`, usar `06-code-review` no [catálogo packaged](.agents/AGENTS.md). |
+| **karpathy-guidelines** | [`.agents/skills/karpathy-guidelines/SKILL.md`](.agents/skills/karpathy-guidelines/SKILL.md) | Boas práticas de codificação para evitar alucinações e erros comuns de LLMs. |
+| **consume-erp-fiscal** | [`.agents/skills/erp-fiscal-consumer/SKILL.md`](.agents/skills/erp-fiscal-consumer/SKILL.md) | **[Portável para Consumidores]** Guia de integração para ERPs que consomem esta biblioteca. Ensina a instalar/atualizar via NuGet/GitHub Packages, integrar com ABP, e gerenciar as fronteiras rígidas de código (domínio especializado local vs lógica fiscal neutra). |
+| **security-check** | [`.agents/skills/security-check/SKILL.md`](.agents/skills/security-check/SKILL.md) | **[Sempre neste repo — canônico]** Segredos, credenciais, PII — Husky + docs. Scanner portátil on-demand: `secrets-leak-review` no [catálogo packaged](.agents/AGENTS.md). Índice: [`docs/security/README.md`](docs/security/README.md). Regra Cursor: [`.cursor/rules/security-check.mdc`](.cursor/rules/security-check.mdc). |
+| **release-nuget-package** | [`.agents/skills/release-nuget-package/SKILL.md`](.agents/skills/release-nuget-package/SKILL.md) | **[Este repo]** Publicação automatizada dos pacotes NuGet (`ERP.Fiscal.Abstractions`, `ERP.Fiscal.PlugNotas`): resolve versão, dispara `Deploy Main`, tag, GitHub Release e validação em GitHub Packages / NuGet.org. Script: `scripts/release-nuget.sh`. |
+| **Workflow / pipeline** | [`.agents/AGENTS.md`](.agents/AGENTS.md) | `spec-to-pr`, `spec-to-pr-lite`, skills `00`–`11`, providers, reviews portáteis, `check-harness`. |
 
 > [!TIP]
-> A skill **`consume-erp-fiscal`** deve ser copiada para a pasta `.agents/skills/consume-erp-fiscal/SKILL.md` no repositório de qualquer ERP que consuma esta lib. Isso garante que o agente trabalhando no ERP consumidor siga os padrões corretos de arquitetura.
+> A skill **`consume-erp-fiscal`** (`name:` no frontmatter) vive em [`.agents/skills/erp-fiscal-consumer/SKILL.md`](.agents/skills/erp-fiscal-consumer/SKILL.md). Copie essa pasta para o ERP consumidor (ou o path que o consumidor usar para skills), para o agente seguir as fronteiras corretas.
 
 ---
 
 ## Sempre (toda sessão)
 
-- Responder em **Português (pt-BR)**, salvo pedido contrário.
+- Responder em **Português (pt-BR)**, salvo pedido contrário (ex.: `check-harness` → en-us).
 - Mudanças **cirúrgicas** — mínimo diff que resolve o pedido.
 - Seguir padrões **ABP Framework** para módulos C# (.NET 10).
 - **Documentação PlugNotas atualizada:** ao implementar features, corrigir integração ou alterar `Contracts/`/`Providers`/HTTP, seguir a skill [`sync-plugnotas-docs`](.agents/skills/sync-plugnotas-docs/SKILL.md) — consultar o Swagger em https://docs.plugnotas.com.br, cruzar com `docs/plugnotas/`, atualizar os `.md` afetados no mesmo trabalho e sugerir melhorias quando houver lacunas.
