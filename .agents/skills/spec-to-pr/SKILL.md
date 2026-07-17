@@ -3,7 +3,7 @@ name: spec-to-pr
 description: >-
   Spec-to-PR delivery orchestrator FSM (F0–F6, steps 0–12; 13 with `--full`). Agent contract only — not human docs.
   Invoke: /spec-to-pr | @[spec-to-pr]. Entry: GitHub issue | Azure DevOps work item | *.spec.md | feature description.
-  Flags: dry-run, auto, skip-integration, skip-tests, full, --model, --model-chain. Delegates via Task tool.
+  Flags: dry-run, auto, skip-integration, skip-tests, full, strict. Delegates via Task tool.
   Legacy aliases: /us-workflow, /us-delivery-workflow.
 upstream: jpolvora/workflow-skills — this skill is a workflow owned by workflow-skills. Improvements must be submitted upstream to https://github.com/jpolvora/workflow-skills
 ---
@@ -15,7 +15,7 @@ upstream: jpolvora/workflow-skills — this skill is a workflow owned by workflo
 | **Orchestrator (this file)** | FSM + tool bindings + asserts |
 | **Humans** | [`README.md`](README.md), [`docs/faq.md`](docs/faq.md), [`DIAGRAM.md`](DIAGRAM.md) |
 
-**Load:** current step + linked protocols only. Setup → [`setup.md`](../shared/setup.md). Gates (dual-mode) → [`gates.md`](../shared/gates.md). Config/SCM → [`config-resolution.md`](../shared/config-resolution.md). Artifacts → [`ARTIFACTS.md`](ARTIFACTS.md). Dispatch → [`STEP-DISPATCH.md`](STEP-DISPATCH.md) (load only when advancing/dispatching). Stack → `config.json.rules.stackFile` (auto-loaded steps 5,7,9–11). Hub → [`AGENTS.md`](../../../AGENTS.md). Step 2 → [`02-interview`](../02-interview/SKILL.md). Tools → [`tools.md`](../shared/tools.md). Dual-mode with [`spec-to-pr-lite`](../spec-to-pr-lite/SKILL.md): shared skills must stay interchangeable.
+**Load:** current step + linked protocols only. Setup → [`setup.md`](../shared/setup.md). Gates (dual-mode) → [`gates.md`](../shared/gates.md). Config/SCM → [`config-resolution.md`](../shared/config-resolution.md). Artifacts → [`ARTIFACTS.md`](ARTIFACTS.md). Dispatch → [`STEP-DISPATCH.md`](STEP-DISPATCH.md) (load only when advancing/dispatching). Protocols → [`protocols/`](protocols/) (on demand). Stack → `config.json.rules.stackFile` (auto-loaded steps 5,7,9–11). Hub → [`AGENTS.md`](../../../AGENTS.md). Step 2 → [`02-interview`](../02-interview/SKILL.md). Tools → [`tools.md`](../shared/tools.md). Dual-mode with [`spec-to-pr-lite`](../spec-to-pr-lite/SKILL.md): shared skills must stay interchangeable.
 
 ## Language
 
@@ -28,7 +28,7 @@ Canonical tool names from [`tools.md`](../shared/tools.md). Project params from 
 | Intent | Tool alias | Native | Rule |
 |--------|------------|--------|------|
 | Step work | `dispatch-agent` | `Task` | `subagent_type: generalPurpose\|shell`; `description: "STP step {N} — {Label}"`; `readonly: true` step 6 only; no resume across steps; step 5 DAG ≤3 parallel |
-| User gate | `user-gate` / `user-gate-auto` | `AskQuestion` | **FORCE invoke** every normal-mode gate — see [`gates.md`](../shared/gates.md); ≥2 options; recommended first; cancelled → HS-1; auto → auto-gate |
+| User gate | `user-gate` / `user-gate-auto` | `AskQuestion` | Prefer when available; markdown fallback per [`gates.md`](../shared/gates.md); ≥2 options; recommended first; cancelled → HS-1; auto → auto-gate |
 | Build/test | `build-backend`, `test-backend`, etc. | `Shell` | values from `config.json.verification` |
 | Source control | `commit-code`, `push-branch`, etc. | `Shell` | `gh`, `git`; cite real output |
 | State | `read-state` / `write-state` | `Read` + `Write`/`StrReplace` | truth source; hygiene before board |
@@ -41,13 +41,9 @@ Subagents: native tools for evidence; end with parseable `step-output` block.
 
 User output: post-tool summaries + Progress Board + banners.
 
-### AskQuestion requirement
+### User gates (AskQuestion)
 
-**FORCE:** Every normal-mode user decision MUST call native `AskQuestion` before any markdown menu. Full contract: [`gates.md`](../shared/gates.md) (slim transition menu, one delivery gate, one ship gate, session-level exposure probe).
-
-Applies to: transitions, entry/resume/config, refinement 2c (2e only if needed), G2-code, delivery, ship, and any ≥2-option clarifying choice. **No separate 4†/8† menus** — phase model hints fold into Advance when crossing F1→F2 or F3→F4.
-
-Cancelled → **HS-1**. `autoMode` → auto-gate index 0. Prefer one `AskQuestion` per assistant message.
+Prefer native `AskQuestion` for normal-mode decisions; if unavailable, same options as markdown list (Recommended first). Full contract: [`gates.md`](../shared/gates.md) — slim transitions, one delivery, one ship. Applies to transitions, entry/resume/config, refinement 2c (2e only if needed), G2-code, delivery, ship. **No separate 4†/8† menus** — phase soft tips at F1→F2 / F3→F4 (Pause → Cursor → Resume to switch). Cancelled → **HS-1**. `autoMode` → auto-gate index 0.
 
 ---
 
@@ -81,8 +77,7 @@ Deterministic FSM; step content delegated to skills via **`Task`**.
 | Checkpoints | Local tag `uswf/{workflow-id}/before-step-{N}` every boundary. |
 | **Workflow artifacts** | **Never `git commit` `.cursor/plans/` files during Steps 0–11.** Code commits (7/10/11 fix) stage `src/`/`web/`/`tests/` only. Delivery commit at Step 12: `step-01-{slug}.plan.md` + `step-12-{slug}.result.md` only. |
 | **Pause** | **Pause workflow** keeps **all** artifacts on disk — no cleanup, no delete. `status: active`. |
-| `--model` | Set `currentModel` at workflow start. Overrides default. |
-| `--model-chain` | Map `{step}:{model}` pairs. Only way to switch models in auto mode. Takes precedence over `--model` at matching steps. Stored in `state.modelChain`. |
+| Session model | `currentModel` = executing session model. Switch via Pause → Cursor → Resume ([`gates.md`](../shared/gates.md)). |
 | Portability | Keep spec-to-pr fully generic and portable. No hardcoded project-specific metadata, paths, solution names, or commands. All dynamic options and metadata must be resolved from `config.json` or `stack.md`. |
 
 **Legacy aliases** (still accepted): `/us-workflow`, `@[us-workflow]`, `/us-delivery-workflow`, `@[us-delivery-workflow]`.
@@ -147,7 +142,7 @@ flowchart LR
 | F5 | 11 | Verifier + optional browser |
 | F6 | 12, 13 | Orchestrator + shell (+ ship subagent when fullMode) |
 
-† Steps **4,8** = internal phase model hints on Advance (no dedicated menus) — never in `completedSteps`; log `model-gate` in `## Gate history`.
+† Steps **4,8** = internal phase soft tips on Advance (no dedicated menus) — never in `completedSteps`; log `model-hint` in `## Gate history`.
 
 | `completedSteps` | Phase done |
 |------------------|------------|
@@ -227,19 +222,11 @@ Auto: HS-3/4/5 apply; HS-1/2 N/A.
 
 Rules: multiple `needs_user` → one by design-tree priority. **End refinement and advance** → log `assumed-default`, set `shared_understanding: confirmed`, skip 2e. Block Step 3 only if interview ran and `refine.shared_understanding !== confirmed`.
 
-**Conditional skip:** If complexity ≠ complex and plan Open Questions empty/resolved → skip Step 2 (`skippedSteps`), log `interview-skip | reason | ISO`, advance to Step 3. See [`gates.md`](../shared/gates.md).
+**Conditional skip:** See [`gates.md`](../shared/gates.md) § Conditional interview.
 
 ### Complexity / Dynamic Execution
 
-Before Step 1, classify complexity ([`gates.md`](../shared/gates.md)):
-
-| Class | Action |
-|-------|--------|
-| **simple** | Write stub `step-01-{slug}.plan.md` (goal, files, AC checklist). Skip Steps 1–2–3 (`skippedSteps`). `execMode: sequential`. Jump to Step 5. **Never** blank plan. |
-| **standard** | Steps 1 → conditional 2 → 3 → … |
-| **complex** | Enforce Steps 1 + 2 + 3 |
-
-Log `complexity | {class} | ISO`. User may override via AskQuestion when ambiguous: **Simple path** / **Standard path** (rec) / **Full grill**.
+Before Step 1, classify per [`gates.md`](../shared/gates.md) § Complexity gate. User may override when ambiguous: **Simple path** / **Standard path** (rec) / **Full grill**.
 
 ### Worktree Fallback
 
@@ -253,44 +240,15 @@ branch-direct: edits on `state.branch`; subagent `wip(us-{id}): step-{N}` or dir
 
 ### State Hygiene
 
-After step N, before the progress board, the orchestrator MUST execute State Hygiene. To prevent manual markdown formatting errors and streamline execution, run the automated state update utility.
-
-**Automated State Hygiene Update:**
-```bash
-python .agents/skills/spec-to-pr/scripts/update_state.py \
-  .cursor/plans/{slug}/{workflow-id}.state.md \
-  --step {N} \
-  --status {completed|failed|skipped} \
-  --elapsed {elapsedSec} \
-  --tokens {promptTokens}:{completionTokens} \
-  --model {modelName} \
-  --created "{comma_separated_created_files}" \
-  --modified "{comma_separated_modified_files}" \
-  --deleted "{comma_separated_deleted_files}" \
-  --gate-choice "{gateChoice}"
-```
-
-**Manual Fallback (if Python is unavailable):**
-```yaml
-- Check modelChain[N+1] → if set, update currentModel and log model-chain in ## Gate history
-- Append ## Step outputs ### Step N (include model: {modelName} in block)
-- Append step-output.learning → ## Workflow memory (dedupe)
-- Merge files_touched → ## Step file log ### Step N
-- Append to ## Step model log: | Step N | {label} | {model} | dispatched {ISO} |
-- Record telemetry: elapsedSec, promptTokens, completionTokens, estimated → ## Telemetry ### Step N
-- Append to ## Telemetry log: | Step N | {label} | {model} | {elapsedSec}s | {tokens} |
-- Recompute workflowManifest; update completedSteps, stepStatus, currentStep
-- Assert created paths exist; currentStep = next gate
-- Step 2: ## Refinement registry
-```
+→ [`protocols/state-hygiene.md`](protocols/state-hygiene.md)
 
 ### Model readiness (no separate 4†/8† menus)
 
-When Advance crosses **F1→F2** (after Step 3, before Step 5) or **F3→F4** (after Step 7, before Step 9), the Advance option label includes the recommended model class and concrete model name. User can pick **More… → Switch model** instead. Log `model-gate | F1→F2|F3→F4 | current | recommended | choice | ISO`. Tags `before-step-5`, `before-step-9` still apply.
+No in-gate model picker. At every transition, show the gates.md banner (`Current model` + Pause → Cursor → Resume).
+
+When Advance crosses **F1→F2** (after Step 3, before Step 5) or **F3→F4** (after Step 7, before Step 9), add the soft hint from [`gates.md`](../shared/gates.md) (Coder / Reviewer class). Log `model-hint | F1→F2|F3→F4 | current={currentModel} | ISO`. Tags `before-step-5`, `before-step-9` remain for telemetry only.
 
 Steps **4 and 8** are **not** user-facing menus and stay out of `completedSteps` / Progress Board.
-
-`--model-chain` remains the only auto-mode mid-flow switch.
 
 ### Step Dispatch & Isolation
 
@@ -312,89 +270,30 @@ Anchor (`Shell` tag): `uswf/{workflow-id}/before-step-{N} @ {sha}`. Worktree 5/1
 
 ### Learning & Memory Protocol
 
-**Purpose:** Prevent repeating mistakes across steps and across workflow runs. `state.md` acts as the intra-workflow knowledge bus, while the compiled `MEMORY.md` inside `.agents/skills/shared/` is the cross-session, persistent anti-regression knowledge base (consumer-owned; installer never copies upstream hub memory).
+At step start, subagent reads `state.md` (`## Workflow memory`, `## Accumulated decisions`, `## Step outputs`) and `.agents/skills/shared/MEMORY.md` index. After step, record `step-output.learning` → orchestrator appends to `## Workflow memory`.
 
-#### 1. Pre-read Checklist (Memory Consultation)
-At the start of every step, the subagent MUST read the following sections:
-
-| Source | Section | Purpose |
-|--------|---------|---------|
-| `state.md` | `## Workflow memory` | Traps, gotchas, fixes from prior steps — **do not repeat mistakes** |
-| `state.md` | `## Accumulated decisions` | Design choices, assumption flags, deviations from plan |
-| `state.md` | `## Step outputs` (all `### Step N` blocks) | Prior errors, retry patterns, broken approaches |
-| `state.md` | `## Doc consolidation log` | Docs updated during workflow |
-| `self-learning/MEMORY.md` → **`.agents/skills/shared/MEMORY.md`** | Index + scope-related sections | Generalizable anti-regression patterns from past workflows |
-| `check_memory_conflict.py` | script output | Conflict detection (steps 2,3,5,9,10) |
-
-- **Intra-workflow Avoidance:** Scan `## Step outputs ### Step N` for `errors[]` and `learning` fields. Subagent MUST NOT repeat approaches that prior steps logged as broken.
-
-#### 2. Writing Back Learnings
-After step completion, the subagent records in `step-output.learning` (mistakes made, traps/constraints found). The orchestrator appends these to `state.md` `## Workflow memory`.
-
-#### 3. Inter-workflow Promotion (Step 12 Sweep)
-At Step 12, the orchestrator reviews all `## Workflow memory` and `step-output.learning` entries, promoting generalizable patterns to the file-based memory system under `self-learning`.
-- **Promotion Process:** For each promoted learning, create a new markdown file under `.agents/skills/shared/memory/YYYY-MM-DD-[slug].md`. Then, run the compiler script: `python .agents/skills/self-learning/self_learning.py --compile`.
-- **Promotion Criteria:** Technical (framework/api/pattern level, not domain-specific), generalizable, non-duplicate (query/grep memory first), and concise (one line per trap).
-- **Target Sections:** Traps, patterns, layers, modules, severity.
-- **Exclusions:** Do NOT store logs (→ `CHANGELOG.md`), domain rules (→ `CONTEXT.md` / `specs/`), narratives, or duplicates.
-- **`dryRun`:** Log proposed entries in `## Doc consolidation log` only — do not write new entry files to `memory/` or run the compiler.
+**Step 12 sweep:** Promote generalizable patterns to `shared/memory/*.md` + run `self_learning.py --compile`. Criteria: technical, generalizable, non-duplicate, concise. `dryRun`: log in `## Doc consolidation log` only.
 
 ### Specification Protocol
 
-[`spec-format`](../spec-format/SKILL.md). Canonical spec: `{us-dir}/step-00-{slug}.spec.md` — never live tracker APIs and never `*.issue.json` after Step 0. Tracker credentials/org: `config.json.issueTrackers`. Entry ownership: `config.json.providers` + provider skills below.
+[`spec-format`](../spec-format/SKILL.md). Canonical spec: `{us-dir}/step-00-{slug}.spec.md` — never live tracker APIs and never `*.issue.json` after Step 0.
 
 | Input | Tracker / provider | Action | Uses Step 0? |
 |-------|--------------------|--------|--------------|
-| `{n}` or `US {n}` | `providers.active` (legacy: GitHub when enabled) | `slug=us-{n}`; load active provider → `fetch-to-spec` → `{us-dir}/step-00-us-{n}.spec.md` | No — skip to Step 1 |
-| `{org}/{project}#{id}` | `azure-devops-provider` | `slug=us-{id}`; `fetch-to-spec` → `{us-dir}/step-00-us-{id}.spec.md` | No — skip to Step 1 |
-| `ADO {id}` / `WI {id}` | `azure-devops-provider` | Same as above; org/project from `issueTrackers.azureDevOps` | No — skip to Step 1 |
-| `*.spec.md` (any path) | `local-spec-provider` | `fetch-to-spec` (register/normalize) → `{us-dir}/step-00-{slug}.spec.md` | No — skip to Step 1 |
-| free-text / no args | none | brainstorm → `00-write-spec` → `{us-dir}/step-00-{slug}.spec.md` (optional mirror via `local-spec-provider`) | Yes — `Task` `00-write-spec` |
+| `{n}` or `US {n}` | `providers.active` | `fetch-to-spec` → `{us-dir}/step-00-us-{n}.spec.md` | No — skip to Step 1 |
+| `{org}/{project}#{id}` / `ADO {id}` / `WI {id}` | `azure-devops-provider` | `fetch-to-spec` | No — skip to Step 1 |
+| `*.spec.md` | `local-spec-provider` | `fetch-to-spec` | No — skip to Step 1 |
+| free-text / no args | none | `00-write-spec` → spec file | Yes — `Task` `00-write-spec` |
 
-#### Provider resolution
-
-Document identically in each provider skill (no shared package):
-
-1. Read `providers.active` / `providers.scm` from `config.json`.
-2. If `providers` absent: enabled GitHub → active=`github`; else enabled ADO → `azure-devops`; else `local`. Prefer GitHub if both enabled.
-3. If `scm` absent: if active is `github`\|`azure-devops` → scm=active; if active=`local` → parse `project.repoUrl` host (`github.com` → github; `dev.azure.com` / `visualstudio.com` → azure-devops); else STOP and require explicit `providers.scm`.
-4. Reject `scm: "local"`.
-5. When `providers.active` is present, bare `{n}` / `US {n}` resolve against **active**, not dual-enabled tracker preference. Legacy dual-enabled bare-number rule applies only when `providers` is omitted.
-
-#### Dispatch — `fetch-to-spec` (entry)
-
-| Active / entry | Skill | Intent |
-|----------------|-------|--------|
-| `github` or GitHub issue id | [`github-provider`](../github-provider/SKILL.md) | `fetch-to-spec` (+ `validate-auth` first when needed) |
-| `azure-devops` or ADO id forms | [`azure-devops-provider`](../azure-devops-provider/SKILL.md) | `fetch-to-spec` (+ `validate-auth` first when needed) |
-| `local` or `*.spec.md` path | [`local-spec-provider`](../local-spec-provider/SKILL.md) | `fetch-to-spec` |
-
-Orchestrator **must not** embed multi-line `gh` / `az` / hand-written register recipes. Load the provider skill and run `fetch-to-spec`. Auth or config failure → STOP with that provider’s fix instructions; **no** silent fallback to another provider.
-
-**Bare number resolution (legacy, when `providers` omitted):** if only `azureDevOps.enabled` and GitHub disabled → treat `{n}` as ADO work item. If both enabled → bare `{n}` = GitHub; require `ADO {id}` or `{org}/{project}#{id}` for ADO. If the required tracker is disabled or unauthenticated → STOP with fix instructions.
-
-**When `providers.active` is set:** bare `{n}` / `US {n}` use that provider (e.g. `active=azure-devops` → ADO work item). Explicit forms (`ADO {id}`, `{org}/{project}#{id}`, GitHub URL, `*.spec.md`) still select their matching provider.
+Provider resolution and `fetch-to-spec` dispatch: load active provider skill; auth failure → STOP (no silent fallback). Details in each provider `SKILL.md`.
 
 ### Step 0 Entry Gate
 
-Before Step 0, the orchestrator checks the trigger input and determines the entry flow:
+1. **Tracker id** → provider `fetch-to-spec` → skip Step 0 → Step 1 gate.
+2. **Local `*.spec.md`** → `local-spec-provider` → skip Step 0 → Step 1 gate.
+3. **No args / free-text** → Entry menu: issue/spec path / brainstorm (`00-write-spec` only path).
 
-1. **Tracker id** (`{n}`, `US {n}`, `ADO {id}`, `WI {id}`, or `{org}/{project}#{id}`):
-   - Resolve `providers.active` (algorithm above) → load that provider skill → `fetch-to-spec` → `{us-dir}/step-00-{slug}.spec.md`.
-   - Registers `specPath`, `specSource` (`github` | `azure-devops`).
-   - **Skips Step 0** — advances directly to the Step 1 gate.
-
-2. **Local `*.spec.md` provided as argument:**
-   - Load [`local-spec-provider`](../local-spec-provider/SKILL.md) → `fetch-to-spec`. Registers `specPath`, `specSource: local`.
-   - **Skips Step 0** — advances directly to the Step 1 gate.
-
-3. **No arguments (or free-text description as argument):**
-   - Entry Menu (AskQuestion):
-     - **I have a GitHub issue / ADO work item** (recommended) — same as case 1; skip Step 0 → Step 1.
-     - **I have a local `*.spec.md`** — same as case 2.
-     - **I want to describe a feature to brainstorm** — `Task` `00-write-spec` → `{us-dir}/step-00-{slug}.spec.md` → Step 1 gate. **This is the only path that uses `00-write-spec`.** Optional post-draft mirror under `plans.specsDir`: delegate to `local-spec-provider`.
-
-After the entry gate, `specPath` is stored in state `## Artifacts.specPath` and snapshotted in `## Artifacts.specSnapshot`.
+Store `specPath` in state `## Artifacts`.
 
 ### Build & Test Validation (7, 10)
 
@@ -402,215 +301,38 @@ Before G2-code commit: `config.json.rules.stackFile` → build (+ tests unless s
 
 ### Integration Validation (11)
 
-`07-integration-validation` via **`Task`**.
-
-| Flag | Effect |
-|------|--------|
-| `skipIntegration` | no Task; Write skip → step 12 |
-| `autoMode` \| `dryRun` | Task without browser; §6 skipped in report |
-| normal + gate | `CallMcpTool` cursor-ide-browser |
+`07-integration-validation` via **`Task`**. `skipIntegration` → skip to Step 12. `autoMode`/`dryRun` → Task without browser.
 
 Gates (normal): **Approve and run test battery** (rec) / **Run without browser** / **Adjust test plan** / **Skip validation** / **Pause workflow**.
 
-Failure (max 3): **Apply fixes and revalidate** (rec) / **Accept with reservations** / **Re-run without fixes** / **Pause**. Fix: G2-code commit only (`src/`/`web/`/`tests/`).
+Failure (max 3): **Apply fixes and revalidate** (rec) / **Accept with reservations** / **Re-run without fixes** / **Pause**. Fix: G2-code commit only.
 
 ### Workflow Artifact Commit Protocol
 
 | When | Allowed |
 |------|---------|
 | Steps 0–11 | **Code only** under `src/`, `web/`, `tests/` at Steps 7, 10, 11 fix |
-| Steps 0–11 | **Forbidden:** `.cursor/plans/**`, `*.plan.exec.md`, `*.exec.dag.json`, `*.report.md`, `*.plan.report.md`, `*.integration-test.*`, `*.state.md`, `*.issue.json` |
-| Step 12 | **`{slug}.plan.md`** (checkmarks updated) + **`{slug}.result.md`** — delivery commit via G2-delivery gate |
-| Pause | No commit required; **no delete** of workflow files |
+| Steps 0–11 | **Forbidden:** `.cursor/plans/**`, exec/dag/report/state/issue files |
+| Step 12 | Plan + result — delivery commit via G2-delivery gate |
+| Pause | No commit; no delete |
 
 Orch `git add` must be path-scoped — never `git add .` on steps 7/10/11.
 
-### Delivery Result Protocol (Step 12 — before delivery commit)
+### Delivery Result (Step 12)
 
-1. **`Read`** sources: `step-00-{slug}.spec.md`, `step-02-{slug}.plan.refined.md` (or `step-01-{slug}.plan.md` if Step 2 was bypassed), `step-06-{slug}.plan.report.md`, `step-10-{slug}.report.md`, integration report if exists, `## Open items` in state.
-2. **`Write`** `{us-dir}/step-12-{slug}.result.md`:
+→ [`protocols/delivery-result.md`](protocols/delivery-result.md)
 
-```markdown
-# {slug} — Delivery Result
+### Optional Artifact Cleanup (Step 12)
 
-## Expected
-<!-- from spec ACs + plan scope -->
+→ [`protocols/artifact-cleanup.md`](protocols/artifact-cleanup.md)
 
-## Done
-<!-- from verify report + delivery report + completed DAG tasks -->
+### Progress Board & banners
 
-## Next steps
-<!-- open items, reservations, manual follow-ups before PR -->
-
-## References
-- Spec: {specPath}
-- Plan: step-02-{slug}.plan.refined.md (or step-01-{slug}.plan.md if Step 2 was bypassed)
-- Verify: step-06-{slug}.plan.report.md
-- Delivery: step-10-{slug}.report.md
-```
-
-3. **Capture LOC delta:** `Shell` from repo root:
-   - Baseline LOC: `git ls-files src/ web/ tests/ | xargs git show {baselineCommit}: 2>/dev/null | wc -l`
-   - Final LOC: `git ls-files src/ web/ tests/ | xargs wc -l 2>/dev/null | tail -1 | awk '{print $1}'`
-   - Diff stat: `git diff --stat {baselineCommit} -- src/ web/ tests/ | tail -1`
-   - Parse added/removed; store in `telemetry.loc`.
-4. **Compute benchmark:** aggregate `telemetry.steps[].elapsedSec` → `totalElapsedSec`; sum `promptTokens + completionTokens` → `totalTokens`; compute `netDelta = added - removed`.
-5. **Append Benchmark** to `step-12-{slug}.result.md` per template below; populate from `telemetry.steps[]`.
-6. **Update plan checkmarks:** mark completed tasks/ACs `[x]` per verify report + `completedTasks` + `completedSteps` ≥5.
-7. Register `resultSnapshot` + `telemetry.workflowEndedAt` in state `## Artifacts`.
-8. **G2-delivery gate** → `Shell` stage `step-01-{slug}.plan.md` + `step-02-{slug}.plan.refined.md` (if generated) + `step-12-{slug}.result.md` → `git commit -m "docs({slug}): delivery plan and result"`.
-9. Log `step-12-delivery-commit | {sha}` in `## Gate history` and `commits[]`.
-
-`dryRun`: simulate result + plan edits + benchmark; no real commit.
-
-### Optional Artifact Cleanup Protocol (Step 12 — after delivery commit)
-
-**Only when `status: completed` and user explicitly chooses cleanup** — never on **Pause workflow**.
-
-**Gate options:**
-- **Delete temporary artifacts** (rec if lean repo) — `step-03-*.plan.exec.md`, `step-03-*.exec.dag.json`, `step-00-*.issue.json`, `step-06-*.plan.report.md`, `step-11-*.integration-test.*.md`, worktrees, baseline, archive, checkpoint tags
-- **Keep all artifacts** (rec for audit) — no delete
-
-**Cleanup execution (when user chooses delete):**
-
-1. Delete temp files:
-   ```bash
-   rm {us-dir}/step-03-{slug}.plan.exec.md
-   rm {us-dir}/step-03-{slug}.exec.dag.json
-   rm {us-dir}/step-00-{slug}.issue.json
-   rm {us-dir}/step-06-{slug}.plan.report.md
-   rm {us-dir}/step-11-{slug}.integration-test.plan.md
-   rm {us-dir}/step-11-{slug}.integration-test.report.md
-   ```
-2. Remove checkpoint tags:
-   ```bash
-   git tag -l "uswf/{workflow-id}/*" | xargs -r git tag -d
-   ```
-3. Remove worktree dirs + prune branches:
-   ```bash
-   git worktree list | grep "uswf/{workflow-id}" | awk '{print $1}' | while read wt; do
-     git worktree remove "$wt" --force 2>/dev/null
-   done
-   git branch -l "uswf/{workflow-id}/*" | sed 's/^[* ]*//' | xargs -r git branch -D
-   ```
-4. Remove baseline backup: `rm -rf {us-dir}/{workflow-id}.baseline/`
-5. Remove archive: `rm -rf {us-dir}/{workflow-id}.archive/`
-
-**Preserved (never deleted):** `step-01-{slug}.plan.md`, `step-02-{slug}.plan.refined.md` (if generated), `step-12-{slug}.result.md`, `step-00-{slug}.spec.md`, `{workflow-id}.state.md` (while `status: active`).
-
-**Post-cleanup verification:**
-```bash
-git worktree list | grep "uswf/{workflow-id}" && echo "WARN: worktree remains" || echo "Clean"
-git tag -l "uswf/{workflow-id}/*" | wc -l | xargs -I{} echo "Tags remaining: {}"
-git branch -l "uswf/{workflow-id}/*" | wc -l | xargs -I{} echo "Branches remaining: {}"
-```
-
-**Pause / `status: active`:** skip cleanup entirely; all files remain for resume. **Dry-run:** log intended deletions only.
-
-
-
-### Telemetry & Benchmarking
-
-Orch records wall-clock time, token usage, LOC delta at every step boundary. At Step 12, consolidated benchmark appended to `{slug}.result.md` and Progress Board.
-
-#### Timing
-
-| Event | Record | Field |
-|-------|--------|-------|
-| Workflow start | `telemetry.workflowStartedAt` | ISO 8601 (bootstrap) |
-| Step N dispatch | `telemetry.steps[N].dispatchedAt` | ISO 8601 (before `Task`/`Shell`) |
-| Step N finish | `telemetry.steps[N].finishedAt` | ISO 8601 (after return) |
-| Step N elapsed | `telemetry.steps[N].elapsedSec` | `(finishedAt - dispatchedAt) / 1000` (int, seconds) |
-| Workflow end | `telemetry.workflowEndedAt` | ISO 8601 (Step 12, before cleanup) |
-| Total elapsed | `telemetry.totalElapsedSec` | sum of all step `elapsedSec` |
-
-Gate time (AskQuestion waiting) excluded — agent execution time only.
-
-#### Token counting
-
-| Field | Source | Fallback |
-|-------|--------|----------|
-| `promptTokens` | LLM metadata | estimate: prompt chars / 3.5 |
-| `completionTokens` | LLM metadata | estimate: completion chars / 3.5 |
-| `totalTokens` | sum | estimate: (prompt + completion chars) / 3.5 |
-
-Labeled `(est.)` when estimated. `Shell` steps (7, 12, 13): elapsed time only; tokens=0.
-
-#### Lines of code delta
-
-At bootstrap + Step 12 delivery:
-
-```bash
-# Baseline (bootstrap)
-git ls-files src/ web/ tests/ | xargs wc -l 2>/dev/null | tail -1
-
-# Diff (Step 12)
-git diff --stat {baselineCommit} -- src/ web/ tests/ | tail -1
-```
-
-| Field | Description |
-|-------|-------------|
-| `telemetry.loc.baseline` | total lines at `baselineCommit` |
-| `telemetry.loc.final` | total lines at Step 12 commit |
-| `telemetry.loc.added` | `+` lines from diff |
-| `telemetry.loc.removed` | `-` lines from diff |
-| `telemetry.loc.netDelta` | `added - removed` |
-
-Count only `src/`, `web/`, `tests/`.
-
-#### Step output telemetry contract
-
-```yaml
-step-output:
-  telemetry:
-    elapsedSec: {int}
-    promptTokens: {int|null}
-    completionTokens: {int|null}
-    estimated: {boolean}
-```
-
-Orch: validate `telemetry` block → merge into `telemetry.steps[N]`. Missing → HS-5.
-
-#### Benchmark report (Step 12)
-
-```markdown
-## Benchmark
-
-| Metric | Value |
-|--------|-------|
-| Total wall-clock time | {h}h {m}m {s}s ({totalElapsedSec}s agent execution) |
-| Steps executed | {N} |
-| Total tokens | {sum} (estimated: {bool}) |
-| Lines added | +{added} |
-| Lines removed | -{removed} |
-| Net LOC delta | +{netDelta} |
-| Baseline LOC | {baseline} |
-| Final LOC | {final} |
-
-### Step breakdown
-
-| Step | Label | Model | Elapsed | Tokens (est.) | Files changed |
-|------|-------|-------|---------|---------------|---------------|
-| 0 | Spec Creation | {model} | {elapsedSec}s | {tokens} | {n} |
-| 1 | Planning | {model} | {elapsedSec}s | {tokens} | {n} |
-```
-
-**Token efficiency:** `tokens/loc` ratio. **Velocity:** `loc/min`.
-
-### Step Output Banner
-
-When `autoMode` or `dryRun`, before and after each step:
-
-```markdown
-[AUTO] [DRY-RUN] **Starting step {N} {Label}**
-[AUTO] **Finished step {N} {Label}**
-```
-
-Step 5: one pair per whole step. Print **Finished** on hard stop too.
+→ [`protocols/progress-board.md`](protocols/progress-board.md)
 
 ### Automatic Mode
 
-Parse: `auto` + combinable `dry-run`, `skip-integration`, `skip-tests`, US/spec entry. Legacy user input may pass `automatico`/`automático`; normalize to `auto` internally.
+Parse: `auto` + combinable `dry-run`, `skip-integration`, `skip-tests`, US/spec entry. Normalize legacy `automatico`/`automático` → `auto` internally.
 
 Resume: active `autoMode` same US → continue `currentStep`; else new `workflow-id`.
 
@@ -619,8 +341,7 @@ Resume: active `autoMode` same US → continue `currentStep`; else new `workflow
 | Step 0 entry gate | **I have a US/issue number** (user must provide in invocation) |
 | Complexity ambiguous | **Standard path** |
 | Transition 1–6, 9–11 | **Advance to Step N+1** |
-| Transition model (auto) | **Advance** (keep current; use `--model-chain` or pause to switch) |
-| Phase model hint (F1→F2 / F3→F4) | Keep current model and advance (or apply `modelChain` if set) |
+| Transition / phase model | **Advance** with session `currentModel` (no `--model-chain`) |
 | Step 2 needs_user | first option; early → **End refinement and advance** (auto-confirms 2e) |
 | Step 2e (only if shown) | **I confirm shared understanding — advance to Step 3** |
 | Step 7 | **Approve, validate build/tests and commit code** |
@@ -631,51 +352,11 @@ Resume: active `autoMode` same US → continue `currentStep`; else new `workflow
 | Step 13 ship (`fullMode`) | **Create PR, monitor, and merge when ready** |
 | Step 13 ship (not `fullMode`) | **Skip shipping** |
 
-Log `auto-gate | step {N} | {choice} | ISO`. Disabled: backward/repeat/pause menus; Step 3 without shared understanding.
+Shared defaults: [`gates.md`](../shared/gates.md) § Auto-gate defaults. Log `auto-gate | step {N} | {choice} | ISO`. Disabled: backward/repeat/pause menus; Step 3 without shared understanding.
 
 ### Checkpoints
 
 Tag `uswf/{workflow-id}/before-step-{N}` = HEAD before step N first mutation. `before-step-1` = `baselineCommit`. Mirror in `checkpoints[]`. Delete on Step 12/reset. Dry-run: log only.
-
-### Progress Board
-
-Render: bootstrap/resume; **phase boundaries** (F0→F1, F1→F2, F2→F3, F3→F4, F4→F5, F5→F6); after failed steps; pause; `/status`; Step 12 final. Skip board on routine Advance between micro-steps when summary already shown (saves tokens). Full template optional via `/status`.
-
-```markdown
-## Progress — US {us} (`{workflowId}`)
-**Status:** … | **Phase:** {Fx} | **Step:** {N} — {label} | **Branch:** `{branch}` | **Mode:** {autoMode→[AUTO] / dryRun→[DRY-RUN] / fullMode→[FULL] / normal}
-**Current model:** {currentModel} | **Step models:** {list}
-
-### Pipeline — Phases
-- [x] F0 Bootstrap · [ ] F2 Implementation ← **next** …
-
-### Steps (0–12; +13 when fullMode, omit 4/8)
-- [x] 0 [{model}] · [x] 1 [{model}] · … · [ ] 5 ← **next** [{currentModel}]
-
-### Refinement _(Step 2 active only)_
-Round {r}/3 · blocking: {n}
-
-### Step 3 Execution Mode _(after Step 3)_
-**Mode:** {execMode} · {reason}
-
-### Step 5 DAG _(if execMode: parallel)_
-- [x] T1 — …
-```
-
-Suffixes: `← next` · `⏭ skipped` · `↻ repeating` · `⏮ reopened`.
-
-**Step 12 final board** — after benchmark:
-
-```markdown
-### Telemetry
-| Metric | Value |
-|--------|-------|
-| Total time | {h}h {m}m {s}s ({totalElapsedSec}s) |
-| Total tokens | {tokens} (est: {bool}) |
-| Lines +/- | +{added} / -{removed} (net: {netDelta}) |
-| Token efficiency | {tokens/loc} tokens/LOC |
-| Velocity | {loc/min} LOC/min |
-```
 
 ### Safe Revert & Backward Navigation
 
@@ -699,30 +380,23 @@ execMode: sequential|parallel|null  # set after Step 3
 branch, baselineCommit, preExistingDirty: []
 checkpoints, workflowManifest, commits: [{sha, step, message}]
 completedSteps, stepStatus, skippedSteps, completedTasks, stepDispatches
-refineRound, currentModel, recommendedModel
+refineRound, currentModel  # session-derived; refresh on resume
 stepModels: [{step: N, model: "name", dispatched: ISO}]
-modelChain: {stepNumber: "modelName"}  # from --model-chain flag
+# modelChain removed — ignore if present in old state files
 telemetry:
   workflowStartedAt: ISO
   workflowEndedAt: null
   totalElapsedSec: null
-  loc:
-    baseline: int|null
-    final: int|null
-    added: int|null
-    removed: int|null
-    netDelta: int|null
+  loc: { baseline, final, added, removed, netDelta }
   totalTokens: int|null
-  steps: [{ N: int, label: str, dispatchedAt: ISO, finishedAt: ISO, elapsedSec: int, promptTokens: int, completionTokens: int|null, estimated: bool, model: str, filesTouched: int }]
+  steps: [{ N, label, dispatchedAt, finishedAt, elapsedSec, promptTokens, completionTokens, estimated, model, filesTouched }]
 ```
 
 Sections: Workflow baseline, manifest, Step file log, Refinement registry, Context, Artifacts, Step outputs, Step model log, Workflow memory, Accumulated decisions, Doc consolidation log, Open items, Gate history.
 
 ### Resume / reset
 
-Delegated to [`setup.md`](../shared/setup.md) § Resume / reset. The orchestrator loads this section during bootstrap step 4.
-
----
+→ [`setup.md`](../shared/setup.md) § Resume / reset
 
 ### Base Prompt Prefix (`Task` body)
 
@@ -737,43 +411,31 @@ Anchor: uswf/{workflow-id}/before-step-{STEP} @ {sha} · CWD: {repo-root | workt
 Role: fresh; no resume. files_touched required (revert). model: {currentModel}.
 Rules: no `.cursor/plans/` in git-add except Step 12 G2-delivery; needs_user: ≥2 choices, recommended first.
 Learning: read ## Workflow memory + ## Step outputs (all prior steps) for traps/errors. Do NOT repeat broken approaches. Record own mistakes in step-output.learning.
-Telemetry required: record elapsedSec (step wall-clock seconds = (finishedAt - dispatchedAt) / 1000, integer), promptTokens + completionTokens (from LLM metadata if available, else estimate chars/3.5 with estimated: true).
+Telemetry required: elapsedSec, promptTokens + completionTokens (from LLM metadata if available, else estimate chars/3.5 with estimated: true).
 End with ```step-output(status, step, artifacts, files_touched, verification, refine, summary, evidence, decisions, doc_consolidation, needs_user, errors, retry_hint, learning, model, telemetry{elapsedSec, promptTokens|null, completionTokens|null, estimated})
 ```
 ```
 
 ### Transition Gates
 
-Post-step: hygiene → checkpoint (`Shell` tag) → short summary → gate. Board at phase boundaries (see Progress Board).
+Post-step: hygiene → checkpoint (`Shell` tag) → short summary → gate. Board at phase boundaries.
 
 | Mode | Tool |
 |------|------|
 | auto | auto-gate table → immediate `Task`/`Shell` |
-| normal | **`AskQuestion`** — slim menu per [`gates.md`](../shared/gates.md) |
+| normal | Prefer `AskQuestion`; slim menu per [`gates.md`](../shared/gates.md) |
 
-**AskQuestion (normal) — every transition, steps 0→1 through 11→12:**
+Shows gates.md banner (`Current model` + Pause → Cursor → Resume) and `**Next step:** {N+1} — {Label}`. Primary: **Advance** (Recommended) / **More options…**. Soft tips at F1→F2 / F3→F4 only.
 
-Shows `**Current model:** {currentModel}` and `**Next step:** {N+1} — {Label}`.
-
-1. **Advance to Step N+1** (Recommended) — keep `{currentModel}`; at F1→F2 / F3→F4, label may include recommended model
-2. **More options…** → Switch model / Repeat / Go back / Pause or cancel
-
-Step 11: More may include **Skip validation**. Step 2: 2e only if interview did not exit via End refinement.
-
-`--model-chain` auto-applies at matching steps (overrides keep-current).
 ---
 
 ## Bootstrap & Entry
 
-Delegated to [`setup.md`](../shared/setup.md) § Bootstrap & Entry. Before Step 0, the orchestrator loads and executes this section.
-
----
+→ [`setup.md`](../shared/setup.md) § Bootstrap & Entry
 
 ## Step instructions
 
-Step dispatch table (0–13), post-mutating merge note, and Step 12–13 protocols → [`STEP-DISPATCH.md`](STEP-DISPATCH.md). Load only when advancing or dispatching a step.
-
----
+→ [`STEP-DISPATCH.md`](STEP-DISPATCH.md) (load when advancing/dispatching)
 
 ## Error policy
 
@@ -781,27 +443,19 @@ Retry: max 3; backoff 0s→30s→60s. Revert: Checkpoint Algorithm only. Conduct
 
 ## Post-workflow (outside this agent)
 
-Manual QA after workflow completion (or pause before Step 12) not resumed here. Use [`10-update-plan-implementation`](../10-update-plan-implementation/SKILL.md) (`/10-update-plan-implementation`) — append plan §9, implement delta, update `{slug}.result.md`, certify for PR. Distinct from Step 10 (in-pipeline review fixes).
+Manual QA after workflow completion (or pause before Step 12) not resumed here. Use [`10-update-plan-implementation`](../10-update-plan-implementation/SKILL.md) — append plan §9, implement delta, update `{slug}.result.md`, certify for PR. Distinct from Step 10 (in-pipeline review fixes).
 
 ## Triggers
 
 ```
-@[spec-to-pr] [auto|dry-run|skip-integration|skip-tests|full|strict] [--model {name}] [--model-chain step:model,...] [US {issue_id} | {org}/{project}#{id} | {name}.spec.md | "feature description"]
+@[spec-to-pr] [auto|dry-run|skip-integration|skip-tests|full|strict] [US {issue_id} | {org}/{project}#{id} | {name}.spec.md | "feature description"]
 /spec-to-pr [flags] [US {issue_id} | {org}/{project}#{id} | {name}.spec.md | "feature description"]
 /status | progress | where am I? → Progress Board only
 go back | change plan | back to step X → Backward Nav (not in auto)
-switch model | change model → More options… on any transition (normal mode)
+switch model | change model → Pause workflow, switch in Cursor, resume (no in-gate picker)
 ```
 
-**Model flags:**
-
-| Flag | Argument | Effect |
-|------|----------|--------|
-| `--model` | `{name}` | Set `currentModel` at start. Overrides default. |
-| `--model-chain` | `{step}:{model},...` | Pre-specify per-step models. Overrides `--model`. |
-| `--strict` | — | Force full US verification matrix at Step 6 |
-
-`--model-chain` is only way to switch models in **auto mode**. Normal: More… → Switch model. Dual-mode Fast path: use [`spec-to-pr-lite`](../spec-to-pr-lite/SKILL.md) or complexity **simple**.
+**Flags:** `auto`, `dry-run`, `skip-integration`, `skip-tests`, `full`, `strict` (full US verification at Step 6). Model = session; switch via Pause → Cursor → Resume ([`gates.md`](../shared/gates.md)).
 
 Gates: [`gates.md`](../shared/gates.md). Config: [`config-resolution.md`](../shared/config-resolution.md).
 
@@ -810,10 +464,9 @@ If invoked **without** US number, spec path, or description:
 
 Examples:
 - `/spec-to-pr auto skip-tests skip-integration US 1234`
-- `/spec-to-pr --model sonnet-4 "Implement a product analytics dashboard with real-time charts"`
+- `/spec-to-pr "Implement a product analytics dashboard with real-time charts"`
 - `/spec-to-pr auto contoso/project#5678`
 - `/spec-to-pr ADO 2416`
 - `/spec-to-pr specs/my-feature.spec.md`
 - `/spec-to-pr full US 99`
-- `/spec-to-pr auto --model-chain 5:sonnet-4,9:gemini-3-pro,10:sonnet-4 US 1234`
-- `/spec-to-pr --model sonnet-4 auto skip-tests US 567`
+- `/spec-to-pr auto skip-tests US 567`

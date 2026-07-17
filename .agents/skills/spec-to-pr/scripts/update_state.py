@@ -364,11 +364,11 @@ def main():
     
     # 5. Set next currentStep
     next_step = step + 1
-    # Skip model sub-gates 4 and 8 in completed steps flow, but currentStep can be 4 or 8 briefly for transitions
+    # Skip phase soft tips 4 and 8 in completed steps flow, but currentStep can be 4 or 8 briefly for transitions
     if step == 3:
-        next_step = 4 # Coder readiness sub-gate
+        next_step = 4  # Coder readiness soft tip
     elif step == 7:
-        next_step = 8 # Review readiness sub-gate
+        next_step = 8  # Review readiness soft tip
         
     data["currentStep"] = next_step
     data["workflowType"] = "standard"

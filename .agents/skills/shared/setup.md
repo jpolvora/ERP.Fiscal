@@ -31,7 +31,6 @@ Resolve `config.json` `rules.*` before assuming a skill or rule file exists. Ful
    - `cp .agents/skills/shared/config.json.example .agents/skills/shared/config.json`
    - AskQuestion: **Fill config now** / **Skip**
    - If "Fill now": present each top-level section, collect values. Skip optional sections.
-1a. **AskQuestion gate rule (recommended)**: If `.cursor/rules/ask-question-gates.mdc` is missing and `.agents/skills/spec-to-pr/cursor-rules/ask-question-gates.mdc` exists, copy it into `.cursor/rules/` so Agent chat always forces native `AskQuestion` for selectable gates (see orchestrator `SKILL.md` § AskQuestion requirement).
 1b. **Stack file bootstrap**: Read `config.json.rules.stackFile` (default: `STACK.md`). `Shell` `test -f {stackFile}`. If missing:
    - Auto-detect the project stack by scanning the repository:
      - **Language/Framework**: Look for `package.json` (Node/React/Next), `*.csproj`/`*.sln`/`*.slnx` (.NET), `pyproject.toml`/`requirements.txt` (Python), `go.mod` (Go), `Cargo.toml` (Rust), `pom.xml`/`build.gradle` (Java), `Gemfile` (Ruby), etc.
@@ -45,10 +44,10 @@ Resolve `config.json` `rules.*` before assuming a skill or rule file exists. Ful
    - Write `STACK.md` to the root of the repository.
    - If auto-detection is incomplete or ambiguous (multiple possible stacks), present findings to the user and ask for clarification on uncertain items.
    - Log: `STACK.md created → {path}` in step output.
-2. **Parse flags**: `auto`, `dry-run`, `skip-integration`, `skip-tests`, `full`, `strict`, `--model {name}`, `--model-chain {step:model,...}`.
-   - `--model {name}` → `currentModel = {name}`
-   - `--model-chain` → parse pairs; store in `state.modelChain`. At each transition, check `modelChain[N]`; if present, auto-set `currentModel`. Log `model-chain | step {N} | {old} → {new} | ISO`.
-   - `--model-chain` takes precedence over `--model` at matching steps. Works in **auto mode** (only way to switch models without pausing).
+2. **Parse flags**: `auto`, `dry-run`, `skip-integration`, `skip-tests`, `full`, `strict`.
+   - Set `currentModel` from the **executing session model** (agent identity / runtime). If unknown → `unknown`.
+   - Do **not** accept `--model` or `--model-chain` (removed). If the raw invocation still contains them, ignore and note once in the init banner: `model flags ignored — use Pause → switch in Cursor → Resume`.
+   - Do **not** store or apply `modelChain`.
    - `strict` → full US verification at Step 6 (standard orch only).
 2a. **Gate contract**: Load [`gates.md`](gates.md) — slim transitions, one delivery gate, one ship gate. Config/SCM: [`config-resolution.md`](config-resolution.md).
 2b. **Mode hint (new workflow only):** If user did not pass density flags and invoked full `spec-to-pr` without `--full`/`auto`, optionally offer once: **Full pipeline** (rec) / **Use lite instead** (`/spec-to-pr-lite`) — see gates.md Mode selection. Skip when already on lite.
@@ -64,8 +63,7 @@ Resolve `config.json` `rules.*` before assuming a skill or rule file exists. Ful
    | `fullMode` | `{true/false}` |
    | `skipIntegration` | `{true/false}` |
    | `skipTests` | `{true/false}` |
-   | `currentModel` | `{model name}` |
-   | `modelChain` | `{pairs or empty}` |
+   | `currentModel` | `{session model}` |
    | `slug` | `{slug}` |
    | `workflowId` | `{workflow-id}` |
    | `branch` | `{branch}` |
@@ -110,6 +108,7 @@ Options:
 ```
 
 5. Resume: load state, `status: active`, skip bootstrap, jump to `currentStep` gate.
+5a. **Session model refresh (mandatory on every resume):** Re-read the executing session model → update `currentModel`. If changed vs prior frontmatter value, log `model-change | step {currentStep} | {old} → {new} | ISO` in ## Gate history. Ignore leftover `modelChain` keys in old state files.
 6. Paused: resume at same step (checkpoint revert M=currentStep → hygiene → board → gate).
 7. No unfinished workflows: skip list, proceed to bootstrap.
 

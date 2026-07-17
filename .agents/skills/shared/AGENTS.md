@@ -21,7 +21,7 @@
 | [`config.json.example`](config.json.example) | Project config template — copy to `config.json`, fill in, never commit |
 | [`config.schema.json`](config.schema.json) | JSON Schema for `config.json` validation |
 | [`config-resolution.md`](config-resolution.md) | Canonical config path + SCM resolution (dual-mode) |
-| [`gates.md`](gates.md) | Shared AskQuestion / delivery / ship gate contract (dual-mode) |
+| [`gates.md`](gates.md) | Shared AskQuestion / delivery / ship / session-model banner (dual-mode) |
 | [`tools.md`](tools.md) | Canonical agent tool vocabulary (aliases → config keys) |
 | [`stack.md.example`](stack.md.example) | Template for human-readable stack companion — seeds `stack.md` |
 | [`setup.md`](setup.md) | Bootstrap & entry logic shared by `spec-to-pr` and `spec-to-pr-lite` |
@@ -50,4 +50,4 @@
 | `self-learning` | [`../self-learning/SKILL.md`](../self-learning/SKILL.md) |
 | `changelog` | [`../changelog/SKILL.md`](../changelog/SKILL.md) |
 
-Install packages and dependency map (upstream `workflow-skills` repo only; optional in consumers): `bin/skill-dependencies.json` when present at the install root.
+Install packages and dependency map: [`../../../bin/skill-dependencies.json`](../../../bin/skill-dependencies.json).

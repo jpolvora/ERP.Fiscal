@@ -45,7 +45,7 @@ def load_plans_dir() -> Path:
     return (REPO_ROOT / plans).resolve() if not plans.is_absolute() else plans.resolve()
 
 REQUIRED_KEYS = ["workflowId", "us", "status", "currentStep"]
-MODEL_SUBGATE_STEPS = set()  # No model sub-gates in spec-to-pr-lite
+PHASE_SOFT_TIP_STEPS = set()  # No phase soft-tip steps in spec-to-pr-lite
 
 def resolve_state_path(arg: str) -> Path:
     p = Path(arg)

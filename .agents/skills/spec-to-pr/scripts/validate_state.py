@@ -12,7 +12,7 @@ Validates a workflow `state.md` against the v7 State Hygiene Protocol:
     (skipped when `dryRun: true`). Paths ending in `/` are checked as dirs.
   - `currentStep` is coherent with `completedSteps` (next gate = max+1, or a
     repeated step already in the set).
-  - `completedSteps` must NOT contain the model sub-gate steps 4/8 (they are
+  - `completedSteps` must NOT contain the phase soft-tip steps 4/8 (they are
     never board steps in v7) -> ERROR.
   - Commits recorded in `commits[]` exist in git (best-effort; skipped if git
     is unavailable or `dryRun: true`).
@@ -62,7 +62,7 @@ def load_plans_dir() -> Path:
 
 
 REQUIRED_KEYS = ["workflowId", "us", "status", "currentStep"]
-MODEL_SUBGATE_STEPS = {4, 8}  # v7: never present in completedSteps (sub-gates)
+PHASE_SOFT_TIP_STEPS = {4, 8}  # v7: never present in completedSteps (phase soft tips)
 
 
 def resolve_state_path(arg: str) -> Path:
@@ -231,12 +231,12 @@ def validate(state_path: Path) -> dict:
                 f"(expected {mx} or {mx + 1})"
             )
 
-    # v7 invariant: model sub-gate steps 4/8 are never in completedSteps
-    subgate_present = sorted(set(completed) & MODEL_SUBGATE_STEPS)
-    if subgate_present:
+    # v7 invariant: phase soft-tip steps 4/8 are never in completedSteps
+    soft_tip_present = sorted(set(completed) & PHASE_SOFT_TIP_STEPS)
+    if soft_tip_present:
         errors.append(
-            f"completedSteps contains model sub-gate steps {subgate_present} "
-            f"(v7: steps 4 and 8 are sub-gates, they must never be added to completedSteps)"
+            f"completedSteps contains phase soft-tip steps {soft_tip_present} "
+            f"(v7: steps 4 and 8 are soft tips only, they must never be added to completedSteps)"
         )
 
     # files on disk (skip in dry-run)

@@ -4,7 +4,7 @@
 
 Visual docs for the [`SKILL.md`](SKILL.md) agent. Human guide: [`README.md`](README.md). Resume rules: [`setup.md`](../shared/setup.md) (canonical).
 
-> **v8.1:** 7 phases (F0–F6); **Authorization Ladder** + hard stops HS-1..5; **Refinement FSM**; **Worktree Fallback**; **State Hygiene**; steps 4/8 → phase model hints folded into Advance ([`gates.md`](../shared/gates.md)); `state.md` as workflow memory + `MEMORY.md` as shared memory; fresh subagent per step + checkpoint tags + Backward Navigation.
+> **v8.1:** 7 phases (F0–F6); **Authorization Ladder** + hard stops HS-1..5; **Refinement FSM**; **Worktree Fallback**; **State Hygiene**; steps 4/8 → phase soft tips folded into Advance ([`gates.md`](../shared/gates.md)); `state.md` as workflow memory + `MEMORY.md` as shared memory; fresh subagent per step + checkpoint tags + Backward Navigation.
 
 ---
 
@@ -13,14 +13,14 @@ Visual docs for the [`SKILL.md`](SKILL.md) agent. Human guide: [`README.md`](REA
 ```mermaid
 flowchart LR
   F0[F0 Bootstrap<br/>step 0] --> F1[F1 Specification<br/>steps 1·2·3]
-  F1 --> F2[F2 Implementation<br/>step 5 + phase model hint]
+  F1 --> F2[F2 Implementation<br/>step 5 + phase soft tip]
   F2 --> F3[F3 Verify + 1st commit<br/>steps 6·7 · G2]
-  F3 --> F4[F4 Review + Fix<br/>steps 9·10 + phase model hint · G2]
+  F3 --> F4[F4 Review + Fix<br/>steps 9·10 + phase soft tip · G2]
   F4 --> F5[F5 Integration<br/>step 11]
   F5 --> F6[F6 Closure<br/>step 12 delivery · step 13 ship]
 ```
 
-Steps **4 and 8** are internal phase model hints on Advance (not board steps).
+Steps **4 and 8** are internal phase soft tips on Advance (not board steps).
 
 ---
 
@@ -357,7 +357,7 @@ mindmap
       Browser validation
       Fix loop + re-seed
     Step 12
-      Cleanup + push consent
+      Delivery result + one delivery gate (no push)
 ```
 
 ---
@@ -402,15 +402,15 @@ flowchart LR
 | 1 | `generalPurpose` | plan generation | false | Planner | `*.plan.md` |
 | 2 | `generalPurpose` | refinement loop | false | Planner | `*.plan.md` (updated) |
 | 3 | `generalPurpose` | exec + DAG + memory-conflict | false | Planner | `*.plan.exec.md` + `*.exec.dag.json` |
-| 4 | — | Coder readiness (orchestrator) | — | Coder swap | — |
+| 4 | — | (internal) Coder phase hint on Advance | — | — | not in completedSteps |
 | 5 | `generalPurpose` | implement per DAG level | false | Coder | code |
 | 6 | `generalPurpose` | verify vs plan/US | true | Verifier | `step-06-{slug}.plan.report.md` |
 | 7 | `shell` + `generalPurpose` | 1st commit + learning | false | shell | commit hash |
-| 8 | — | Review readiness (orchestrator) | — | Reviewer swap | — |
+| 8 | — | (internal) Reviewer phase hint on Advance | — | — | not in completedSteps |
 | 9 | `generalPurpose` | code review (diff only) | false | Reviewer | Critical/Warning list |
 | 10 | `shell` + `generalPurpose` | fix + 2nd commit + report | false | Coder/shell | `step-10-{slug}.report.md` |
 | 11 | `generalPurpose` + browser MCP + shell | integration validation loop | false | Verifier/Coder | `integration-test.plan.md` + `.report.md` |
-| 12 | — + shell | cleanup + §Doc + push consent | — | shell | state completed |
+| 12 | — + shell | delivery result + one delivery gate | — | shell | `step-12-{slug}.result.md` |
 
 ---
 

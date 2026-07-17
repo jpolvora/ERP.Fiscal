@@ -6,14 +6,14 @@
 >
 > **Identity:** Primary invoke `/spec-to-pr` / `@[spec-to-pr]`. Legacy aliases: `/us-workflow`, `/us-delivery-workflow`. Runtime git tags still use `uswf/`; plan slugs still use `us-{id}`.
 
-End-to-end Spec → PR pipeline using **orchestrator + sub-agents** with clean context, shared state, and confirmation gates (including LLM model switching).
+End-to-end Spec → PR pipeline using **orchestrator + sub-agents** with clean context, shared state, and confirmation gates (session model shown at each transition; switch via Pause → Cursor → Resume).
 
 The **`spec-to-pr`** workflow coordinates execution steps through composable skills. Each step runs in isolated sub-agent contexts, consuming and updating shared state (`state.md` and `MEMORY.md`). Each step receives input and produces precise output, allowing subsequent steps to reuse acquired knowledge and accumulated decisions.
 
 ## Core Goals
 1. **End-to-End Delivery:** Automate the complete feature/US lifecycle from specification to PR/Merge (steps 0 to 13).
 2. **Context Isolation & State Hygiene:** Execute each step in a clean, isolated Task with step-specific worktrees, maintaining shared state integrity (`state.md` + `MEMORY.md`).
-3. **Safety & Gates:** Require explicit transition gates and model readiness checks before coding and review phases to prevent accidental commits.
+3. **Safety & Gates:** Require explicit transition gates and phase soft tips (Coder/Reviewer — Pause to switch) before coding and review phases to prevent accidental commits.
 4. **Portability:** Keep the orchestration FSM stack-agnostic and configuration-driven, resolving all project metadata and commands dynamically from `config.json` and `stack.md`.
 
 | Document | Audience | Content |
@@ -40,16 +40,16 @@ The **`spec-to-pr`** workflow coordinates execution steps through composable ski
 | **F5** | Pre-PR integration | 11 | Sub-agent (Verifier) + optional browser |
 | **F6** | Closure | 12, 13 | Orchestrator + shell (+ ship sub-agent when `--full`) |
 
-† Steps **4 and 8** are **model sub-gates** (F1→F2 and F3→F4), never in `completedSteps`.
+† Steps **4 and 8** are **internal phase soft tips** on Advance (F1→F2 and F3→F4), never in `completedSteps`. Prefer `AskQuestion` at gates; markdown fallback when the tool is unavailable ([`gates.md`](../shared/gates.md)).
 
 ### Happy path
 
 ```text
 /spec-to-pr 2416
   → F0: bootstrap, issue fetch (gh), state, gate → F1
-  → F1: plan (1) → refinement FSM if blocking (2) → DAG (3) → model sub-gate → F2
+  → F1: plan (1) → refinement FSM if blocking (2) → DAG (3) → soft tip (Coder) → F2
   → F2: implement DAG on branch (worktree if stable, else branch-direct) → verify files/build → gate → F3
-  → F3: readonly report (6) → explicit G2 commit gate (7) → model sub-gate → F4
+  → F3: readonly report (6) → explicit G2 commit gate (7) → soft tip (Reviewer) → F4
   → F4: scoped diff review (9) → gate → fix sub-agent Coder (10) → G2 commit gate → F5
   → F5: integration plan → gate → test battery (+ browser if approved) → F6
   → F6: one delivery gate → optional Step 13 ship gate → completed
@@ -72,8 +72,6 @@ Pause at any gate → "Pause workflow" → state saved; resume with `/spec-to-pr
 @[spec-to-pr] auto skip-integration 2338
 @[spec-to-pr] auto skip-tests skip-integration 2338
 @[spec-to-pr] soft-delete for suppliers
-@[spec-to-pr] --model sonnet-4 auto US 567
-@[spec-to-pr] --model-chain 5:sonnet-4,9:gemini-3-pro,10:sonnet-4 US 123
 ```
 
 Persistent state: `.cursor/plans/us-{id}/{workflow-id}.state.md` (fields `dryRun`, `autoMode`, `skipIntegration`, `skipTests`, `fullMode`). **Everything** workflow lives under `.cursor/plans/us-{id}/` — nothing written to `.agents/`.
@@ -122,12 +120,13 @@ Independent flags, combinable with `auto` and `dry-run`, in any order:
 
 Activates Step 13 (Ship & PR): push → create PR → goal-fix-pr monitoring loop → merge. Default: off.
 
-### Model flags
+### Model selection
 
-| Flag | Effect |
-|------|--------|
-| `--model {name}` | Set `currentModel` at workflow start. Overrides default. |
-| `--model-chain "{step}:{model},{step}:{model}"` | Pre-specify per-step models. Only way to switch models in auto mode. Overrides `--model` at matching steps. |
+The workflow uses the **session model** currently selected in Cursor. Shown as `Current model` on every transition.
+
+To change model for the next step: **Pause** → switch model in the Cursor UI → **resume** the workflow (`/spec-to-pr …` or `/spec-to-pr-lite …`). Each step can run on a different model this way.
+
+`--model` and `--model-chain` flags are removed.
 
 ---
 
@@ -136,7 +135,7 @@ Activates Step 13 (Ship & PR): push → create PR → goal-fix-pr monitoring loo
 Canonical filenames: [`ARTIFACTS.md`](ARTIFACTS.md).
 
 
-Each step ends with a **git checkpoint** and a **slim Transition Gate** (Advance / More…). Phase model hints fold into Advance at F1→F2 and F3→F4. Shared gate contract: [`gates.md`](../shared/gates.md). Dual-mode with [`spec-to-pr-lite`](../spec-to-pr-lite/SKILL.md).
+Each step ends with a **git checkpoint** and a **slim Transition Gate** (Advance / More…). Phase soft tips (Coder/Reviewer) appear at F1→F2 and F3→F4 — Pause → Cursor → Resume to switch. Shared gate contract: [`gates.md`](../shared/gates.md). Dual-mode with [`spec-to-pr-lite`](../spec-to-pr-lite/SKILL.md).
 
 | # | Name | Who executes | Objective |
 |---|------|--------------|-----------|
@@ -198,7 +197,7 @@ uswf/{workflow-id}/before-step-13  # after Step 12
 | **Next** | Advance to Step N+1 |
 | **Repeat** | Repeat Step N (partial revert if `files_touched` exists) |
 | **Previous** | Go back to earlier step — sub-menu by phase (Planning / Implementation / Review / Validation) |
-| **Pause** | Pause / cancel without revert / cancel and revert all |
+| **Pause** | Pause (to change model: switch in Cursor, then resume) / cancel without revert / cancel and revert all |
 
 **Step 11 — skip:** **Skip validation** in the test plan confirmation gate (advances directly to Step 12).
 
@@ -212,7 +211,7 @@ Returns to **any completed step** (1–3, 5–7, 9–11), not just the current o
 2. Preview: *Will be undone* (Steps M–N) vs *Will be preserved*
 3. Confirm → Checkpoint Revert + immediate redispatch of Step M
 
-Shortcut: Step 7 **Re-implement with different Coder model** = return to Step 5.
+Shortcut: Step 7 **Re-implement** = return to Step 5 (switch model via Pause → Cursor → Resume if desired).
 
 ---
 
@@ -225,7 +224,10 @@ Shortcut: Step 7 **Re-implement with different Coder model** = return to Step 5.
 | **Refinement FSM** | 2 | Audit → Resolve → Escalate → Exit; registry persisted; blocking/non-blocking |
 | **Dynamic Execution (Simplicity First)** | 1, 2 | Orchestrator evaluates complexity — bypasses planning/refinement for surgical changes |
 | **Worktree Fallback** | 5, 10, 11 | branch-direct on Windows/long path + post-step verification |
-| **State Hygiene** | all | Mandatory state sync post-step + asserts (`validate_state.py`) |
+| **State Hygiene** | all | [`protocols/state-hygiene.md`](protocols/state-hygiene.md) — `update_state.py` + manual fallback |
+| **Delivery result & benchmark** | 12 | [`protocols/delivery-result.md`](protocols/delivery-result.md) |
+| **Artifact cleanup** | 12 | [`protocols/artifact-cleanup.md`](protocols/artifact-cleanup.md) (optional) |
+| **Progress board** | all | [`protocols/progress-board.md`](protocols/progress-board.md) |
 | **Learning & Memory** | all (start + end + Step 12) | Read and update state (`state.md`) and `MEMORY.md` to reuse technical learnings and avoid repeating errors |
 | **Context loading** | 1, 2, 5 | Docs, rules, domain glossary |
 | **Specification** | 0 (fetch/resolve), 1–2/6/11 (read) | Entry: **US id**, ADO id, or **`*.spec.md`**. Resolve `providers.active` → provider skill `fetch-to-spec` → **`step-00-{slug}.spec.md`** (canonical). Downstream skills read **spec**, not raw tracker JSON |

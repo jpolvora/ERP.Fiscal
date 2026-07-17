@@ -2,7 +2,7 @@
 
 **Sole source of truth** for workflow artifact names and paths. `SKILL.md`, FAQ, DIAGRAM, and pipeline skills must reference this file; do not invent alternate names.
 
-**Related (not plan-dir artifacts):** Step 0–13 dispatch actions and Step 12/13 gate protocols for **standard** orch live in [`STEP-DISPATCH.md`](STEP-DISPATCH.md) — load only when advancing/dispatching. Lite orch keeps its own Steps 1–5 table; shared gates stay in [`../shared/gates.md`](../shared/gates.md).
+**Related (not plan-dir artifacts):** Step 0–13 dispatch actions and Step 12/13 gate protocols for **standard** orch live in [`STEP-DISPATCH.md`](STEP-DISPATCH.md) — load only when advancing/dispatching. Step 12 delivery templates: [`protocols/delivery-result.md`](protocols/delivery-result.md), optional cleanup [`protocols/artifact-cleanup.md`](protocols/artifact-cleanup.md). Lite orch keeps its own Steps 1–5 table; shared gates stay in [`../shared/gates.md`](../shared/gates.md).
 
 ## Path resolution
 

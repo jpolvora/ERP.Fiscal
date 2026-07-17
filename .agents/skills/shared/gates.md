@@ -17,35 +17,52 @@ Config: [`.agents/skills/shared/config.json`](config.json) only — see [`config
 | **One ship ask** | Orchestrator presents the ship gate once. [`11-ship-pr`](../11-ship-pr/SKILL.md) in workflow mode **executes** the chosen option — does **not** re-AskQuestion. Standalone `/ship-pr` may ask. |
 | **Artifact names** | Delivery result stays `step-12-{slug}.result.md` for **both** workflows (lite Step 4 writes the same filename). Plan is `step-01-{slug}.plan.md`. |
 | **Config** | Only `.agents/skills/shared/config.json`. No `spec-to-pr/config.json` / `spec-to-pr-lite/config.json`. |
-| **AskQuestion** | Native tool when available; HS-1 on cancel. Probe exposure **once per session**, not every gate. |
+| **AskQuestion** | Prefer native tool when available; markdown fallback when not; HS-1 on cancel. |
 
 ---
 
 ## AskQuestion (compact)
 
-1. Session start (or first gate): log `askquestion-exposed | true|false | session | ISO`.
-2. Every gate: call `AskQuestion` with ≥2 options; recommended first.
+1. Every normal-mode gate: **prefer** `AskQuestion` with ≥2 options; recommended first.
+2. If AskQuestion is unavailable or returns tool-not-found → present the **same options** as a short markdown list; wait for user reply. Optional log: `askquestion-fallback | {gate} | ISO`.
 3. Cancelled / dismissed → **HS-1** (STOP; re-present; never infer yes).
-4. Fallback markdown **only** after explicit `Tool not found: AskQuestion` (or equivalent) + log `askquestion-unavailable | {gate} | {error} | ISO`.
-5. `autoMode` → no AskQuestion; use orch auto-gate table (index 0).
+4. `autoMode` → no AskQuestion; use orch auto-gate table (index 0).
 
 ---
 
 ## Default transition menu (slim)
 
+**Banner (always, before options):**
+
+````text
+Current model: {currentModel}
+To use a different model for the next step: Pause → switch model in Cursor → resume workflow.
+````
+
+Resolve `{currentModel}` from the **executing session model** (agent identity / runtime). If unknown, use `unknown` and still show the Pause path. Log `model | step {N} | {name} | ISO`. On change vs prior state value, also log `model-change | step {N} | {old} → {new} | ISO`.
+
 **Primary options (always shown):**
 
-1. **Advance to Step N+1** (Recommended) — keep current model
+1. **Advance to Step N+1** (Recommended)
 2. **More options…**
 
 **Under More options…** (second AskQuestion only if user picked More):
 
-- Switch model and advance (concrete model names)
 - Repeat current step
 - Go back to earlier step (full FSM only; lite: Pause instead if no backward nav)
-- Pause workflow (keeps all artifacts) / Cancel without revert / Cancel and revert
+- **Pause workflow** (keeps all artifacts) — after pause, switch model in Cursor, then resume the workflow; orch re-reads the session model
+- Cancel without revert / Cancel and revert
 
-Routine steps must not bury Advance under five peers. Phase model hints (Coder / Reviewer) fold into Advance when the next step crosses F1→F2 or F3→F4 — see full orch Model readiness (no separate 4†/8† menus).
+Do **not** offer Switch model / Choose model / concrete model-name menus. Model changes happen only via Pause → Cursor model picker → Resume.
+
+**Phase soft tips (full orch only):** When the next step crosses F1→F2 (after Step 3, before Step 5) or F3→F4 (after Step 7, before Step 9), add one hint line under the banner (no picker):
+
+- F1→F2: `Hint: implementation ahead — consider a Coder-class model (Pause → switch → Resume).`
+- F3→F4: `Hint: review ahead — consider a Reviewer/Thinking-class model (Pause → switch → Resume).`
+
+Log `model-hint | F1→F2|F3→F4 | current={currentModel} | ISO`. Lite: banner only (no phase soft tips). See full orch Model readiness for tags `before-step-5` / `before-step-9` (telemetry only; not user menus).
+
+Routine steps must not bury Advance under five peers.
 
 ---
 
@@ -96,7 +113,7 @@ Replaces multi-gate Step 12 / lite Step 4 cluster:
 1. **Commit plan + result, keep artifacts** (Recommended)
 2. **Commit plan + result, delete temps**
 3. **Skip delivery commit**
-4. **Pause**
+4. **Pause** (to change model: switch in Cursor, then resume)
 
 MEMORY.md / self-learning sweep runs automatically after a successful delivery commit (no separate §Doc gate). Push is **not** asked here when the next step is Ship.
 
@@ -109,7 +126,7 @@ Presented by the orchestrator only (full Step 13 / lite Step 5):
 1. **Create PR, monitor, and merge** (Recommended when `fullMode`)
 2. **Push only**
 3. **Skip shipping**
-4. **Pause**
+4. **Pause** (to change model: switch in Cursor, then resume)
 
 When `fullMode` is false, Recommended = **Skip shipping**. When `fullMode` is true, Recommended = **Create PR…**. Never ask push at delivery if Ship is next.
 

@@ -1,6 +1,6 @@
 # FAQ — Spec-to-PR
 
-> **Architecture note (v10.0):** Steps 0–11 delegate their functional content to dedicated skills (`00`–`07`). Stack detected via `.agents/skills/shared/config.json`; tools via `tools.md`. Project-agnostic. Step 13 optional via `--full`. Dual-mode gate UX: [`gates.md`](../../shared/gates.md); config/SCM: [`config-resolution.md`](../../shared/config-resolution.md). Step dispatch table + Step 12/13 protocols for **standard** orch: [`STEP-DISPATCH.md`](../STEP-DISPATCH.md) (load when advancing; **not** the lite Steps 1–5 index). The orchestration mechanics (phases, gates, worktrees, banners, state.md) remain valid.
+> **Architecture note (v10.0):** Steps 0–11 delegate their functional content to dedicated skills (`00`–`07`). Stack detected via `.agents/skills/shared/config.json`; tools via `tools.md`. Project-agnostic. Step 13 optional via `--full`. Dual-mode gate UX: [`gates.md`](../../shared/gates.md); config/SCM: [`config-resolution.md`](../../shared/config-resolution.md). **Session model** on every transition; switch via Pause → Cursor → Resume (no `--model` / `--model-chain`). Step dispatch table + Step 12/13 protocols for **standard** orch: [`STEP-DISPATCH.md`](../STEP-DISPATCH.md) (load when advancing; **not** the lite Steps 1–5 index). The orchestration mechanics (phases, gates, worktrees, banners, state.md) remain valid.
 >
 > **Audience:** developers, tech leads, and agents who need to understand **how** the end-to-end User Story delivery pipeline works.
 > **Order:** sections follow **execution sequence** (F0→F6, steps 0–12; 13 with `--full`), from invocation to closure.
@@ -20,11 +20,11 @@
 | 6 | [**F1 — Step 1: Planning**](#6-f1--step-1-planning-and-brainstorm) | Specification |
 | 7 | [**F1 — Step 2: Refinement**](#7-f1--step-2-refinement) | Specification |
 | 8 | [**F1 — Step 3: Execution Plan + DAG**](#8-f1--step-3-execution-plan-and-dag) | Specification |
-| 9 | [**Sub-gate 4: Coder readiness**](#9-sub-gate-4-coder-readiness) | F1→F2 |
+| 9 | [**Soft tip: Coder readiness**](#9-soft-tip-coder-readiness-f1f2) | F1→F2 |
 | 10 | [**F2 — Step 5: Implementation**](#10-f2--step-5-implementation-dag) | Implementation |
 | 11 | [**F3 — Step 6: Verification**](#11-f3--step-6-verification-and-report) | Verify |
 | 12 | [**F3 — Step 7: 1st commit**](#12-f3--step-7-decision-and-1st-commit) | Verify + G2 |
-| 13 | [**Sub-gate 8: Review readiness**](#13-sub-gate-8-review-readiness) | F3→F4 |
+| 13 | [**Soft tip: Review readiness**](#13-soft-tip-review-readiness-f3f4) | F3→F4 |
 | 14 | [**F4 — Step 9: Code review**](#14-f4--step-9-code-review) | Review |
 | 15 | [**F4 — Step 10: Fix + 2nd commit**](#15-f4--step-10-fixes-2nd-commit-and-report) | Review + G2 |
 | 16 | [**F5 — Step 11: Integration**](#16-f5--step-11-integration-validation-and-pre-pr) | Pre-PR |
@@ -66,7 +66,7 @@ An **orchestrated pipeline** for delivering a User Story (or feature described i
 | F5 | Pre-PR integration | 11 |
 | F6 | Closure | 12 |
 
-† Steps **4 and 8** are **model sub-gates** — never in `completedSteps`.
+† Steps **4 and 8** are **phase soft tips** (Coder/Reviewer) — never in `completedSteps`.
 
 ---
 
@@ -94,9 +94,9 @@ An **orchestrated pipeline** for delivering a User Story (or feature described i
 - Automatic push to remote — only via Step 13 / lite Step 5 ship gate (never at Step 12 delivery)
 - Commit without explicit G2 gate (Steps 7, 10, 11)
 - Infer "yes" when the user cancels an `AskQuestion` (HS-1)
-- Skip native `AskQuestion` and jump straight to a markdown “reply with 1/2/3” menu in normal mode (must **probe by invoking**; fallback only after explicit tool failure — [`SKILL.md`](../SKILL.md) § AskQuestion requirement)
+- Prefer `AskQuestion` at gates; use markdown menu with same options when the tool is unavailable ([`gates.md`](../../shared/gates.md))
 
-**Evidence:** [`SKILL.md`](../SKILL.md) § Allowed dependencies, § Authorization Ladder, § AskQuestion requirement.
+**Evidence:** [`SKILL.md`](../SKILL.md) § Allowed dependencies, § Authorization Ladder, § User gates (AskQuestion).
 
 ---
 
@@ -108,11 +108,11 @@ flowchart TD
     S0 --> S1["§6 Step 1 Plan"]
     S1 --> S2["§7 Step 2 Refinement"]
     S2 --> S3["§8 Step 3 Exec + DAG"]
-    S3 --> SG4["§9 Sub-gate 4 Coder"]
+    S3 --> SG4["§9 Soft tip Coder"]
     SG4 --> S5["§10 Step 5 Implement"]
     S5 --> S6["§11 Step 6 Verify"]
     S6 --> S7["§12 Step 7 1st commit"]
-    S7 --> SG8["§13 Sub-gate 8 Review"]
+    S7 --> SG8["§13 Soft tip Review"]
     SG8 --> S9["§14 Step 9 Code review"]
     S9 --> S10["§15 Step 10 Fix + 2nd commit"]
     S10 --> S11["§16 Step 11 Integration"]
@@ -338,19 +338,21 @@ Breaks the implementation plan into **atomic tasks** organized in a **DAG** (Dir
 
 ---
 
-## 9. Sub-gate 4: Coder Readiness
+## 9. Soft tip: Coder readiness (F1→F2)
 
-### What is the sub-gate?
+### What is it?
 
-A **model readiness check** embedded in the F1→F2 transition gate (after Step 3). Not a board step — never in `completedSteps`. The orchestrator recommends switching to a Coder-class model for implementation (Steps 5, 10).
+A **phase soft tip** embedded in the F1→F2 transition banner (after Step 3). Not a board step — never in `completedSteps`. Suggests considering a Coder-class model for implementation (Steps 5, 10).
 
-### Options (normal mode)
+### How to switch
 
-- **Switch to recommended Coder model** (Suggested)
-- **Keep current model**
-- **Choose a different model**
-- **Repeat Step 3**
-- **Go back / Pause**
+There is **no** in-gate model picker. To change model:
+
+1. **Pause** at the transition gate
+2. Switch model in the Cursor UI
+3. **Resume** the workflow
+
+Banner always shows `Current model` and the Pause → Cursor → Resume path ([`gates.md`](../../shared/gates.md)).
 
 ---
 
@@ -457,19 +459,15 @@ Only files under `src/`, `web/`, `tests/`. **Never** `.cursor/plans/` files (for
 
 ---
 
-## 13. Sub-gate 8: Review Readiness
+## 13. Soft tip: Review readiness (F3→F4)
 
-### What is the sub-gate?
+### What is it?
 
-A **model readiness check** embedded in the F3→F4 transition gate (after Step 7). Not a board step. The orchestrator recommends switching to a Thinking/Reviewer-class model for review (Steps 9, 10).
+A **phase soft tip** embedded in the F3→F4 transition banner (after Step 7). Not a board step. Suggests considering a Thinking/Reviewer-class model for review (Steps 9, 10).
 
-### Options (normal mode)
+### How to switch
 
-- **Switch to recommended Reviewer model** (Suggested)
-- **Keep current model**
-- **Choose a different model**
-- **Repeat Step 7**
-- **Go back / Pause**
+No in-gate picker. **Pause** → switch model in Cursor → **Resume**. Same banner contract as §9 ([`gates.md`](../../shared/gates.md)).
 
 ---
 
@@ -652,7 +650,7 @@ Everything under `{plans-dir}/{slug}/` (default `.cursor/plans/{slug}/`). Canoni
 
 - Workflow baseline (`workflowId`, `slug`, `branch`, `baselineCommit`)
 - Manifest (`completedSteps`, `stepStatus`, `skippedSteps`, `execMode`)
-- Context (`currentModel`, `modelChain`, `refineRound`)
+- Context (`currentModel` session-derived; `modelChain` removed / ignored if leftover; `refineRound`)
 - Artifacts (`specPath`, `specSnapshot`, `resultSnapshot`)
 - Step outputs (all `### Step N` blocks)
 - Workflow memory (learnings, traps within this workflow)
@@ -719,7 +717,11 @@ Yes. Re-invoke with the same US number: `/spec-to-pr 2416`. The orchestrator det
 
 ### How do I switch models mid-workflow?
 
-Every **Transition Gate** (after each step) includes a **Switch model and advance** option. In **auto mode**, use `--model-chain` at invocation to pre-specify per-step models: `--model-chain 5:sonnet-4,9:gemini-3-pro,10:sonnet-4`.
+1. Choose **Pause workflow** at any transition gate (or hard-stop pause).
+2. Switch the model in the Cursor UI.
+3. Resume with the same US/spec (`/spec-to-pr 2416` or lite equivalent).
+
+The orchestrator re-reads the session model into `currentModel` and logs `model-change` when it differs. There is no in-gate model picker and no `--model-chain` flag.
 
 ### What happens if I cancel an AskQuestion?
 
@@ -727,7 +729,7 @@ The orchestrator **never infers "yes"**. HS-1 activates: stop, re-present the ga
 
 ### AskQuestion is missing / the agent only prints 1/2/3
 
-In **normal** mode the orchestrator must **call** the native `AskQuestion` tool every gate (probe → invoke). Markdown menus are allowed **only** after an explicit invoke failure (`Tool not found: AskQuestion`, etc.), logged as `askquestion-unavailable`. Slim menu shape (Advance / More…, one delivery, one ship): [`gates.md`](../../shared/gates.md). If the current model never exposes the tool, switch to Claude/GPT or Plan mode for the picker UI. Consumers can also install `.agents/skills/spec-to-pr/cursor-rules/ask-question-gates.mdc` into `.cursor/rules/` (setup step 1a).
+Prefer native `AskQuestion` when available. If the runtime does not expose it, the orchestrator presents the **same gate options** as a short markdown list (Recommended first) and waits for your reply. Slim menu shape (Advance / More…, one delivery, one ship): [`gates.md`](../../shared/gates.md). Optional log: `askquestion-fallback | {gate} | ISO`.
 
 ### Step 11 wants to use the browser but I'm on auto/dry-run
 

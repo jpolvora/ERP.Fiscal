@@ -14,11 +14,11 @@
 | 1 | Complexity gate → if simple: stub plan + skip to 5. Else `Task` `01-write-plan`. | `step-01-{slug}.plan.md` |
 | 2 | Conditional: skip if eligible; else `Task` `02-interview`; 2c End auto-confirms 2e | `step-02-{slug}.plan.refined.md` |
 | 3 | `Task` `03-plan-to-tasks`; sequential → skip empty DAG artifacts (log only). Parallel → DAG. | `step-03-*` when parallel |
-| 4† | (internal) phase model hint on Advance to 5 — no menu | not in completedSteps |
+| 4† | (internal) phase soft tip on Advance to 5 — no menu | not in completedSteps |
 | 5 | `Task` `04-implement-tasks` mode build; branch-direct default | verification |
 | 6 | `Task` `05-verify-plan` **quick-score default**; full US matrix if score < 7 or `--strict` | `step-06-{slug}.plan.report.md` |
 | 7 | AskQuestion G2-code → Shell build/test → `git commit` code | commit; no `.cursor/plans/` |
-| 8† | (internal) phase model hint on Advance to 9 — no menu | not in completedSteps |
+| 8† | (internal) phase soft tip on Advance to 9 — no menu | not in completedSteps |
 | 9 | `Task` `06-code-review`; findings gate if Critical/Warning | score |
 | 10 | `Task` `04-implement-tasks` mode fix; G2-code only | `step-10-{slug}.report.md` |
 | 11 | Auto-skip if `skipIntegration` or (no API/UI surface + unit tests green); else integration-validation | reports |
@@ -29,7 +29,7 @@ Post-mutating: merge files_touched → Step file log; backup preExistingDirty; c
 
 ### Step 12 — Delivery (one gate)
 
-**Order:** Delivery Result Protocol → LOC/benchmark → **one delivery AskQuestion** → on commit: MEMORY sweep → optional temp delete if user chose delete-temps.
+**Order:** [`protocols/delivery-result.md`](protocols/delivery-result.md) → **one delivery AskQuestion** → on commit: MEMORY sweep → optional temp delete per [`protocols/artifact-cleanup.md`](protocols/artifact-cleanup.md).
 
 **Delivery AskQuestion** ([`gates.md`](../shared/gates.md)):
 
