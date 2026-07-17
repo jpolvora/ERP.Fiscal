@@ -93,7 +93,7 @@ git ls-files '*.json' '*.cs' '*.md' '*.yml' '*.yaml' '*.env*' '*.sh' '*.ps1' | \
 
 Arquivos ignorados pelo Git **ainda entram na checagem** — podem vazar via anexo, cópia ou `git add -f`.
 
-Padrões comuns neste repositório (ver [.gitignore](.gitignore)):
+Padrões comuns neste repositório (ver [.gitignore](../../../.gitignore)):
 
 - `.tmp-postman-cache.json`
 - `.tmp-*`, `*.tmp`

@@ -13,4 +13,4 @@ When the user must choose among discrete options (workflow gates, confirmations,
 4. If the runtime returns `Tool not found: AskQuestion` (or equivalent), log that failure and only then use a markdown fallback menu.
 5. Never infer “yes” from silence or cancelled UI.
 
-This applies especially to `/spec-to-pr` transition gates (`user-gate`).
+This applies especially to `/spec-to-pr` transition gates (`user-gate`). Gate contract: [`.agents/skills/shared/gates.md`](../../.agents/skills/shared/gates.md).

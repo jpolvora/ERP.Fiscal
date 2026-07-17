@@ -21,7 +21,7 @@
 | 8† | (internal) phase soft tip on Advance to 9 — no menu | not in completedSteps |
 | 9 | `Task` `06-code-review`; findings gate if Critical/Warning | score |
 | 10 | `Task` `04-implement-tasks` mode fix; G2-code only | `step-10-{slug}.report.md` |
-| 11 | Auto-skip if `skipIntegration` or (no API/UI surface + unit tests green); else integration-validation | reports |
+| 11 | Auto-skip if `skipIntegration` or (no API/UI surface + unit tests green); else `Task` `07-integration-validation` | reports |
 | 12 | Delivery Result + **one delivery gate** ([`gates.md`](../shared/gates.md)). MEMORY sweep after commit. No push. `status: completed` unless advancing to 13. | `step-12-{slug}.result.md` |
 | 13 | **One ship gate** → pass `shipAction` to `11-ship-pr` (`workflowMode: true`). Always offered; `fullMode` changes Recommended. | PR URL, merge |
 

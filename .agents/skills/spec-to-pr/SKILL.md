@@ -101,7 +101,7 @@ Deterministic FSM; step content delegated to skills via **`Task`**.
 | Skills | `00-write-spec`→0 · `01-write-plan`→1 · `02-interview`→2 · `03-plan-to-tasks`→3 · `04-implement-tasks`→5 build, 10 fix · `05-verify-plan`→6 · `06-code-review`→9 · `07-integration-validation`→11 · `11-ship-pr`→13 |
 | Spec | `spec-format` |
 
-Filesystem paths use numeric prefix; skill `name:` unprefixed. Post-12 PR: [`code-review`](../06-code-review/SKILL.md) / [`fix-pr`](../08-fix-pr/SKILL.md).
+Filesystem paths use numeric prefix; skill `name:` unprefixed. Post-12 PR: [`06-code-review`](../06-code-review/SKILL.md) / [`08-fix-pr`](../08-fix-pr/SKILL.md).
 
 ### Work dir `{us-dir}` = `{config.plans.dir}/{slug}/` (default `.cursor/plans/{slug}/`)
 

@@ -1,0 +1,23 @@
+# Domain catalog index (example)
+
+> Copy this file to `specs/domains/index.md` in the **consumer** repo and adapt.
+> Required only when using `domain-review` / `multi-domain-review`.
+> This example is **not** installed by the skill packager into consumers automatically.
+
+## Index
+
+| Slug | Title | Last review hint |
+|------|-------|------------------|
+| `example-domain` | Example bounded context | never |
+
+## Suggested order
+
+1. `example-domain`
+
+## Subdomains
+
+_(optional — do not auto-pick)_
+
+| Parent | Subdomain | Notes |
+|--------|-----------|-------|
+| — | — | — |

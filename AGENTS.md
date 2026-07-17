@@ -25,6 +25,8 @@ Biblioteca de integração fiscal (NF-e via **PlugNotas**), consumidor-agnóstic
 | `changelog` | Every task completion | [`.agents/skills/changelog/SKILL.md`](.agents/skills/changelog/SKILL.md) |
 | Workflow catalog | On demand (`/spec-to-pr`, reviews, ship, …) | [`.agents/AGENTS.md`](.agents/AGENTS.md) |
 
+**Cursor rules (Layer 0):** [`security-check.mdc`](.cursor/rules/security-check.mdc) · [`plugnotas-docs-sync.mdc`](.cursor/rules/plugnotas-docs-sync.mdc) · [`ask-question-gates.mdc`](.cursor/rules/ask-question-gates.mdc) (workflow gates → native `AskQuestion`; see [`.agents/skills/shared/gates.md`](.agents/skills/shared/gates.md)).
+
 **Language:** conversational replies follow **pt-BR** (see Sempre), unless the user asks otherwise. Skill file bodies and pipeline artifacts stay **en-us** for portable packaged skills. Harness audits (`check-harness`) reply in **en-us**.
 
 **Completion criterion:** before first reply, load every “Every prompt” row above; before declaring a coding task done, run `security-check` + `self-learning` + `changelog` as applicable.

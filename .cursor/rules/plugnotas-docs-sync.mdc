@@ -9,11 +9,11 @@ Este repositório mantém compilação local em `docs/plugnotas/` derivada de ht
 
 **Antes de implementar features ou correções** em `ERP.Fiscal.PlugNotas` (providers, parsers, HTTP, `Contracts/`):
 
-1. Carregar e seguir a skill [`.agents/skills/sync-plugnotas-docs/SKILL.md`](.agents/skills/sync-plugnotas-docs/SKILL.md).
+1. Carregar e seguir a skill [`.agents/skills/sync-plugnotas-docs/SKILL.md`](../../.agents/skills/sync-plugnotas-docs/SKILL.md).
 2. Consultar o Swagger oficial para rotas, campos e validações — não confiar só nos `.md` locais.
 3. Atualizar a documentação local afetada no mesmo trabalho, se houver divergência.
 4. Sugerir melhorias de documentação ao usuário quando identificar lacunas.
 
-**Entrada:** [`docs/README.md`](docs/README.md) — carregar sob demanda o `.md` indicado pelo contexto; não ler todos de uma vez.
+**Entrada:** [`docs/README.md`](../../docs/README.md) — carregar sob demanda o `.md` indicado pelo contexto; não ler todos de uma vez.
 
-**Fronteira:** payload NF-e é montado no ERP; a lib recebe JSON pronto. Ver `AGENTS.md`.
+**Fronteira:** payload NF-e é montado no ERP; a lib recebe JSON pronto. Ver [`AGENTS.md`](../../AGENTS.md).

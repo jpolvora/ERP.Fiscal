@@ -50,4 +50,4 @@
 | `self-learning` | [`../self-learning/SKILL.md`](../self-learning/SKILL.md) |
 | `changelog` | [`../changelog/SKILL.md`](../changelog/SKILL.md) |
 
-Install packages and dependency map: [`../../../bin/skill-dependencies.json`](../../../bin/skill-dependencies.json).
+Install packages and dependency map: upstream `bin/skill-dependencies.json` in [workflow-skills](https://github.com/jpolvora/workflow-skills) (not vendored in consumer clones).
