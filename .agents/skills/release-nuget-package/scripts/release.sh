@@ -103,20 +103,48 @@ latest_published_github() {
 }
 
 wait_for_main_deploy() {
-  local timeout="${1:-600}" elapsed=0 run_id=""
-  log "Aguardando workflow ${WORKFLOW_NAME} na ${MAIN_BRANCH}..."
+  # Args: timeout_seconds [head_sha]
+  # When head_sha is set, watch only the run for that commit (avoids racing a sibling push).
+  local timeout="${1:-600}" head_sha="${2:-}" elapsed=0 run_id=""
+  if [[ -n "$head_sha" ]]; then
+    log "Aguardando workflow ${WORKFLOW_NAME} para ${head_sha:0:7}..."
+  else
+    log "Aguardando workflow ${WORKFLOW_NAME} na ${MAIN_BRANCH}..."
+  fi
   while (( elapsed < timeout )); do
-    run_id="$(gh run list --workflow "$WORKFLOW_FILE" --branch "$MAIN_BRANCH" --limit 1 \
-      --json databaseId,status --jq '.[0] | select(.status != "completed") | .databaseId' 2>/dev/null || true)"
-    if [[ -n "$run_id" && "$run_id" != "null" ]]; then
-      gh run watch "$run_id" --exit-status
-      return 0
-    fi
-    local latest_status latest_conclusion
-    latest_status="$(gh run list --workflow "$WORKFLOW_FILE" --branch "$MAIN_BRANCH" --limit 1 --json status --jq '.[0].status')"
-    latest_conclusion="$(gh run list --workflow "$WORKFLOW_FILE" --branch "$MAIN_BRANCH" --limit 1 --json conclusion --jq '.[0].conclusion')"
-    if [[ "$latest_status" == "completed" && "$latest_conclusion" == "success" ]]; then
-      return 0
+    if [[ -n "$head_sha" ]]; then
+      run_id="$(gh run list --workflow "$WORKFLOW_FILE" --branch "$MAIN_BRANCH" --limit 20 \
+        --json databaseId,status,headSha,conclusion \
+        --jq "map(select(.headSha == \"${head_sha}\")) | .[0].databaseId // empty" 2>/dev/null || true)"
+      if [[ -n "$run_id" && "$run_id" != "null" ]]; then
+        local run_status run_conclusion
+        run_status="$(gh run list --workflow "$WORKFLOW_FILE" --branch "$MAIN_BRANCH" --limit 20 \
+          --json databaseId,status,headSha --jq "map(select(.databaseId == ${run_id})) | .[0].status")"
+        if [[ "$run_status" == "completed" ]]; then
+          run_conclusion="$(gh run list --workflow "$WORKFLOW_FILE" --branch "$MAIN_BRANCH" --limit 20 \
+            --json databaseId,conclusion,headSha --jq "map(select(.databaseId == ${run_id})) | .[0].conclusion")"
+          if [[ "$run_conclusion" == "success" ]]; then
+            return 0
+          fi
+          err "Workflow ${run_id} concluiu com: ${run_conclusion}"
+          exit 1
+        fi
+        gh run watch "$run_id" --exit-status
+        return 0
+      fi
+    else
+      run_id="$(gh run list --workflow "$WORKFLOW_FILE" --branch "$MAIN_BRANCH" --limit 1 \
+        --json databaseId,status --jq '.[0] | select(.status != "completed") | .databaseId' 2>/dev/null || true)"
+      if [[ -n "$run_id" && "$run_id" != "null" ]]; then
+        gh run watch "$run_id" --exit-status
+        return 0
+      fi
+      local latest_status latest_conclusion
+      latest_status="$(gh run list --workflow "$WORKFLOW_FILE" --branch "$MAIN_BRANCH" --limit 1 --json status --jq '.[0].status')"
+      latest_conclusion="$(gh run list --workflow "$WORKFLOW_FILE" --branch "$MAIN_BRANCH" --limit 1 --json conclusion --jq '.[0].conclusion')"
+      if [[ "$latest_status" == "completed" && "$latest_conclusion" == "success" ]]; then
+        return 0
+      fi
     fi
     sleep 5
     elapsed=$((elapsed + 5))
@@ -210,12 +238,13 @@ cmd_publish() {
   git pull --ff-only origin "$MAIN_BRANCH"
 
   if $MERGE_DEVELOP; then
-    log "Merge origin/${DEVELOP_BRANCH} → ${MAIN_BRANCH}..."
+    # Local merge only — do NOT push here. Pushing merge + trigger separately
+    # fires two Deploy Main runs and races the nuget.props bump.
+    log "Merge origin/${DEVELOP_BRANCH} → ${MAIN_BRANCH} (local; push único com o trigger)..."
     if $DRY_RUN; then
       log "[dry-run] git merge origin/${DEVELOP_BRANCH} --no-edit"
     else
       git merge "origin/${DEVELOP_BRANCH}" --no-edit
-      git push origin "$MAIN_BRANCH"
     fi
   fi
 
@@ -235,9 +264,12 @@ cmd_publish() {
   if $DRY_RUN; then
     log ""
     log "=== DRY RUN — plano ==="
+    if $MERGE_DEVELOP; then
+      log "0. merge origin/${DEVELOP_BRANCH} em ${MAIN_BRANCH} (sem push)"
+    fi
     log "1. git commit --allow-empty -m \"${message}\""
-    log "2. git push origin ${MAIN_BRANCH}"
-    log "3. Aguardar ${WORKFLOW_NAME} (build, test, pack, push GH + NuGet.org, bump nuget.props)"
+    log "2. git push origin ${MAIN_BRANCH}  (um único push → um Deploy Main)"
+    log "3. Aguardar ${WORKFLOW_NAME} no SHA do trigger (build, test, pack, push GH + NuGet.org, bump nuget.props)"
     log "4. git tag -a ${tag} <commit-trigger> -m \"Release ${tag}\""
     log "5. git push origin ${tag}"
     log "6. gh release create ${tag} (se não existir)"
@@ -253,7 +285,7 @@ cmd_publish() {
 
   if ! $NO_WATCH; then
     sleep 3
-    wait_for_main_deploy 900
+    wait_for_main_deploy 900 "$release_sha"
     git pull --ff-only origin "$MAIN_BRANCH"
   else
     log "Pulando watch do workflow (--no-watch). Verifique manualmente: gh run list --workflow ${WORKFLOW_FILE}"
@@ -302,6 +334,8 @@ Publicado em GitHub Packages e NuGet.org via workflow **${WORKFLOW_NAME}**.
 ACTION="${1:-}"
 shift || true
 
+VERIFY_VERSION=""
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dry-run) DRY_RUN=true ;;
@@ -311,7 +345,15 @@ while [[ $# -gt 0 ]]; do
     --no-watch) NO_WATCH=true ;;
     --message) shift; CUSTOM_MESSAGE="${1:?--message requer texto}" ;;
     -h|--help) usage 0 ;;
-    *) err "Opção desconhecida: $1"; usage 1 ;;
+    *)
+      # Positional version for: release.sh verify 0.1.19
+      if [[ "$ACTION" == "verify" && -z "$VERIFY_VERSION" && "$1" != -* ]]; then
+        VERIFY_VERSION="$1"
+      else
+        err "Opção desconhecida: $1"
+        usage 1
+      fi
+      ;;
   esac
   shift
 done
@@ -319,7 +361,7 @@ done
 case "${ACTION:-}" in
   status) cmd_status ;;
   publish|"") cmd_publish ;;
-  verify) cmd_verify "${1:-}" ;;
+  verify) cmd_verify "$VERIFY_VERSION" ;;
   -h|--help|help) usage 0 ;;
   *)
     err "Ação desconhecida: ${ACTION}"

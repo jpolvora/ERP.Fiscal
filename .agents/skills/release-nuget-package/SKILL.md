@@ -92,17 +92,20 @@ bash scripts/release-nuget.sh verify
 
 ```
 1. checkout main + pull
-2. resolve versão (ex.: 0.1.9) de nuget.props
-3. commit vazio "chore: trigger release v0.1.9"
-4. push main → dispara Deploy Main
-5. aguarda CI (build, test, pack, push GitHub Packages + NuGet.org)
-6. CI faz bump automático em nuget.props (próxima versão)
-7. tag v0.1.9 no commit trigger
-8. push tag + GitHub Release
-9. verify nos feeds
+2. (opcional --merge-develop) merge origin/develop localmente — sem push
+3. resolve versão (ex.: 0.1.9) de nuget.props
+4. commit vazio "chore: trigger release v0.1.9"
+5. um único push main → um Deploy Main (merge+trigger no mesmo push)
+6. aguarda CI no SHA do trigger (build, test, pack, push GitHub Packages + NuGet.org)
+7. CI faz bump automático em nuget.props (próxima versão)
+8. tag v0.1.9 no commit trigger
+9. push tag + GitHub Release
+10. verify nos feeds
 ```
 
 **Por que commit vazio em `main`?** Push de tag sozinho nem sempre dispara o workflow de forma confiável; push em `main` é o gatilho canônico e ainda aciona bump automático.
+
+**Por que não pushar o merge separado?** Dois pushes em `main` disparam dois `Deploy Main` e correm no bump de `nuget.props`. Com `--merge-develop`, o merge fica só local até o push do trigger.
 
 ---
 
@@ -164,6 +167,7 @@ Feed GitHub: `https://nuget.pkg.github.com/jpolvora/index.json`
 | Workflow não bumpou | Commit com `[skip ci]` | Normal para bump do bot; release trigger **não** deve usar `[skip ci]` |
 | `already exists` no push | Versão republicada | `--force` ou incrementar via merge em main |
 | Falha NuGet.org | `NUGET_API_KEY` ausente/inválida | Configurar secret no repositório |
+| Dois Deploy Main / bump `rejected` | Push do merge + push do trigger | Já corrigido: `--merge-develop` não pusha o merge sozinho; watch amarra ao SHA do trigger |
 
 Logs: `gh run view <id> --log | grep -i nuget`
 
