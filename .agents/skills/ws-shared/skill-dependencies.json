@@ -1,0 +1,183 @@
+{
+  "version": 1,
+  "packageVersion": "0.0.109",
+  "upstream": {
+    "repo": "jpolvora/workflow-skills",
+    "url": "https://github.com/jpolvora/workflow-skills",
+    "note": "Managed skills ship from this upstream. Lasting improvements must be submitted as PRs there; consumer copies are overwritten on update."
+  },
+  "hub": {
+    "dir": "ws-shared",
+    "ensureWhen": [
+      "full",
+      "workflows",
+      "workflow-skill-selected"
+    ]
+  },
+  "packages": {
+    "full": {
+      "select": "all-skills",
+      "ensureHub": true,
+      "shortcut": "f",
+      "label": "Full package"
+    },
+    "workflows": {
+      "skills": [
+        "ws-spec-to-pr",
+        "ws-spec-to-pr-lite",
+        "ws-write-spec",
+        "ws-classify-complexity",
+        "ws-write-plan",
+        "ws-interview",
+        "ws-plan-to-tasks",
+        "ws-implement-tasks",
+        "ws-verify-plan",
+        "ws-code-review",
+        "ws-testing",
+        "ws-ship-pr",
+        "ws-fix-pr",
+        "ws-goal-fix-pr",
+        "ws-update-plan-implementation",
+        "ws-github-provider",
+        "ws-azure-devops-provider",
+        "ws-local-spec-provider",
+        "ws-check-harness",
+        "ws-check-workflows",
+        "ws-tdah",
+        "ws-karpathy-guidelines",
+        "ws-spec-format",
+        "ws-goal-loop",
+        "ws-self-learning",
+        "ws-changelog",
+        "ws-secrets-leak-review",
+        "ws-configure-project",
+        "ws-fable-method",
+        "ws-fable-judge",
+        "ws-fable-domain",
+        "ws-multi-spec",
+        "ws-spec-index",
+        "ws-sync-spec",
+        "ws-senior-developer"
+      ],
+      "ensureHub": true,
+      "shortcut": "w",
+      "label": "Workflows package"
+    },
+    "extra": {
+      "skills": [
+        "ws-write-a-skill",
+        "ws-show-harness"
+      ],
+      "ensureHub": false,
+      "shortcut": "e",
+      "label": "Extra package"
+    }
+  },
+  "dependencies": {
+    "ws-spec-to-pr": [
+      "ws-write-spec",
+      "ws-classify-complexity",
+      "ws-write-plan",
+      "ws-interview",
+      "ws-plan-to-tasks",
+      "ws-implement-tasks",
+      "ws-verify-plan",
+      "ws-code-review",
+      "ws-testing",
+      "ws-ship-pr",
+      "ws-fix-pr",
+      "ws-goal-fix-pr",
+      "ws-update-plan-implementation",
+      "ws-github-provider",
+      "ws-azure-devops-provider",
+      "ws-local-spec-provider",
+      "ws-check-harness",
+      "ws-check-workflows",
+      "ws-tdah",
+      "ws-karpathy-guidelines",
+      "ws-spec-format",
+      "ws-goal-loop",
+      "ws-self-learning",
+      "ws-changelog",
+      "ws-configure-project",
+      "ws-spec-index",
+      "ws-senior-developer"
+    ],
+    "ws-spec-to-pr-lite": [
+      "ws-write-spec",
+      "ws-classify-complexity",
+      "ws-write-plan",
+      "ws-implement-tasks",
+      "ws-code-review",
+      "ws-ship-pr",
+      "ws-fix-pr",
+      "ws-goal-fix-pr",
+      "ws-github-provider",
+      "ws-azure-devops-provider",
+      "ws-local-spec-provider",
+      "ws-tdah",
+      "ws-karpathy-guidelines",
+      "ws-spec-format",
+      "ws-self-learning",
+      "ws-changelog",
+      "ws-configure-project",
+      "ws-spec-index",
+      "ws-senior-developer"
+    ],
+    "ws-write-spec": [
+      "ws-spec-format"
+    ],
+    "ws-github-provider": [
+      "ws-spec-format"
+    ],
+    "ws-azure-devops-provider": [
+      "ws-spec-format"
+    ],
+    "ws-local-spec-provider": [
+      "ws-spec-format"
+    ],
+    "ws-goal-fix-pr": [
+      "ws-fix-pr",
+      "ws-goal-loop"
+    ],
+    "ws-write-plan": [
+      "ws-fable-domain"
+    ],
+    "ws-verify-plan": [
+      "ws-fable-judge"
+    ],
+    "ws-ship-pr": [
+      "ws-secrets-leak-review",
+      "ws-fable-judge",
+      "ws-spec-index"
+    ],
+    "ws-code-review": [
+      "ws-karpathy-guidelines",
+      "ws-tdah",
+      "ws-self-learning",
+      "ws-fable-judge"
+    ],
+    "ws-fable-method": [
+      "ws-fable-judge",
+      "ws-fable-domain",
+      "ws-tdah",
+      "ws-karpathy-guidelines",
+      "ws-self-learning"
+    ],
+    "ws-fable-judge": [
+      "ws-tdah",
+      "ws-karpathy-guidelines"
+    ],
+    "ws-multi-spec": [
+      "ws-spec-to-pr",
+      "ws-spec-to-pr-lite",
+      "ws-classify-complexity",
+      "ws-ship-pr",
+      "ws-goal-fix-pr",
+      "ws-tdah",
+      "ws-karpathy-guidelines"
+    ]
+  },
+  "autoloadOnly": [],
+  "selectOffRule": "no-cascade-deselect"
+}

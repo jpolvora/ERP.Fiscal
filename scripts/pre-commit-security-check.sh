@@ -75,6 +75,11 @@ FILTERED="$(printf '%s\n' "$FILTERED" | grep -Ev -- 'check_pattern |FORBIDDEN_PA
 # Padrões de varredura documentados em skills (ex.: secrets-leak-review rg recipes)
 FILTERED="$(printf '%s\n' "$FILTERED" | grep -Ev -- 'rg -l --no-ignore.*(password=|passwd=|pwd=|apiKey=|api_key=|secretKey=|secret_key=)' || true)"
 
+# Credenciais de exemplo da documentação AWS (não são chaves reais) — comuns em allowlists de scanners
+FILTERED="$(printf '%s\n' "$FILTERED" | grep -Ev -- \
+  'AKIAIOSFODNN7EXAMPLE|wJalrXUtnFEMI/K7MDENG' \
+  || true)"
+
 if [[ -z "$FILTERED" ]]; then
   echo "pre-commit security-check: OK"
   exit 0

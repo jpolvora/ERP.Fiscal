@@ -1,0 +1,25 @@
+{
+  "skill_name": "ws-goal-fix-pr",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Keep fixing PR #42 until zero open review threads.",
+      "expected_output": "Convergence loop via ws-goal-fix-pr until thread count is zero or blocked.",
+      "assertions": [
+        "Agent loads ws-goal-fix-pr or goal-fix-pr",
+        "Uses goal-loop convergence pattern",
+        "Reports remaining thread count each iteration"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "one pass fix-pr on PR 42 then stop",
+      "expected_output": "Single ws-fix-pr pass, not unbounded goal loop.",
+      "assertions": [
+        "Does not run infinite loop when user caps iterations",
+        "Distinguishes ws-goal-fix-pr from single fix-pr",
+        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+      ]
+    }
+  ]
+}

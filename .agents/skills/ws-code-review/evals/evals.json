@@ -1,0 +1,36 @@
+{
+  "skill_name": "ws-code-review",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Run local code review for oauth-login branch changes before PR.",
+      "expected_output": "Two-phase triage + investigation review per skill; step-06 review artifact.",
+      "assertions": [
+        "Agent loads ws-code-review",
+        "Review is diff-grounded, not generic praise",
+        "Separates blocking vs non-blocking findings"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "quick lgtm on my changes",
+      "expected_output": "Agent still follows review skill structure rather than empty approval.",
+      "assertions": [
+        "Does not output performative LGTM without reading changes",
+        "References concrete files or findings",
+        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "ws-spec-to-pr Step 6 found Critical and Warning findings under autoMode.",
+      "expected_output": "Autofix → re-review loop up to 3 rounds; state/memory each round; Pause if residual Critical/Warning remain.",
+      "assertions": [
+        "Does not Advance with open Critical/Warning",
+        "Runs ws-implement-tasks mode=fix then re-review",
+        "Caps at max 3 rounds in autoMode",
+        "Logs review-fix round in gate history and records traps/gaps"
+      ]
+    }
+  ]
+}
