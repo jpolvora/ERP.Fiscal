@@ -37,7 +37,7 @@ Skills gerenciadas (`ws-*` + hub `ws-shared/`) vêm do repositório upstream [jp
 | Tipo | Pastas | Quem mantém |
 |------|--------|-------------|
 | Managed (workflow-skills) | `.agents/skills/ws-*`, templates em `ws-shared/` | Upstream — use `update`; não editar de forma permanente aqui |
-| Product (ERP.Fiscal) | `security-check`, `sync-plugnotas-docs`, `code-review`, `erp-fiscal-consumer`, `release-nuget-package` | Este repo — **não** remover no cleanup de migração |
+| Product (ERP.Fiscal) | `security-check`, `sync-plugnotas-docs`, `code-review`, `erp-fiscal-consumer`, `erp-fiscal-sync`, `release-nuget-package` | Este repo — **não** remover no cleanup de migração |
 | Removidas de propósito | legado `00-*`…`11-*`, `shared/`, `gabarito`, `caveman`, providers sem `ws-`, reviews genéricas não usadas | Não restaurar |
 
 Hub de roteamento após install: [`.agents/skills/ws-shared/AGENTS.md`](.agents/skills/ws-shared/AGENTS.md). Doc humana completa: [README do workflow-skills](https://github.com/jpolvora/workflow-skills#install-update-and-uninstall).
@@ -106,6 +106,7 @@ Portable resolution (first match): see [`.agents/skills/ws-shared/AGENTS.md` § 
 | **sync-plugnotas-docs** | [`.agents/skills/sync-plugnotas-docs/SKILL.md`](.agents/skills/sync-plugnotas-docs/SKILL.md) | **[Sempre neste repo]** Consulta [docs.plugnotas.com.br](https://docs.plugnotas.com.br), atualiza `docs/plugnotas/` no formato local (índice, progressive disclosure) e sugere melhorias. **Obrigatória** ao implementar features, corrigir bugs de integração ou sincronizar documentação. Regra Cursor: [`.cursor/rules/plugnotas-docs-sync.mdc`](.cursor/rules/plugnotas-docs-sync.mdc). |
 | **code-review** | [`.agents/skills/code-review/SKILL.md`](.agents/skills/code-review/SKILL.md) | Review local **ERP.Fiscal** (lib PlugNotas / .NET 10). Distinto de `ws-code-review` (Step 6 do pipeline). |
 | **consume-erp-fiscal** | [`.agents/skills/erp-fiscal-consumer/SKILL.md`](.agents/skills/erp-fiscal-consumer/SKILL.md) | **[Portável para Consumidores]** Guia de integração para ERPs que consomem esta biblioteca (NuGet/GitHub Packages, ABP, fronteiras domínio vs lib). |
+| **erp-fiscal-sync** | [`.agents/skills/erp-fiscal-sync/SKILL.md`](.agents/skills/erp-fiscal-sync/SKILL.md) | **[Portável]** Sync bidirecional vendored ↔ canônico (`promote` / `pull`); user-invoked `/erp-fiscal-sync`. |
 | **security-check** | [`.agents/skills/security-check/SKILL.md`](.agents/skills/security-check/SKILL.md) | **[Sempre neste repo — canônico]** Segredos, credenciais, PII — Husky + docs. Scanner portátil on-demand: `ws-secrets-leak-review`. Índice: [`docs/security/README.md`](docs/security/README.md). Regra Cursor: [`.cursor/rules/security-check.mdc`](.cursor/rules/security-check.mdc). |
 | **release-nuget-package** | [`.agents/skills/release-nuget-package/SKILL.md`](.agents/skills/release-nuget-package/SKILL.md) | Publicação NuGet (`ERP.Fiscal.Abstractions`, `ERP.Fiscal.PlugNotas`): versão, `Deploy Main`, tag/release, feeds. Script: `scripts/release-nuget.sh`. |
 

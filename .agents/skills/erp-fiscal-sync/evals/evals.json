@@ -1,0 +1,38 @@
+{
+  "skill_name": "erp-fiscal-sync",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "/erp-fiscal-sync direction=promote peer=../SomeErp",
+      "expected_output": "Agent builds a content-diff checklist, commit-scans both sides, gates, applies, then build/test and adds missing tests.",
+      "assertions": [
+        "Loads erp-fiscal-sync SKILL.md before writing files",
+        "Builds checklist from content comparison not mtime alone",
+        "Runs git log commit-scan on lib src/test paths",
+        "Shows checklist and waits for approval before applying",
+        "Runs dotnet build/test after apply; adds tests when public API gaps exist"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "/erp-fiscal-sync direction=pull libPath=../SomeErp/vendor/ERP.Fiscal since=14.days",
+      "expected_output": "Agent pulls with explicit libPath, respects since window, adapts conflicting target fixes.",
+      "assertions": [
+        "Uses explicit libPath without recursive search",
+        "Honors since=14.days in commit-scan",
+        "Marks adapt vs copy on conflicting modifies",
+        "Verifies with dotnet build/test on target"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "/erp-fiscal-sync — peer has two ERP.Fiscal trees",
+      "expected_output": "Agent lists matches and asks; does not pick silently.",
+      "assertions": [
+        "Detects multiple strong marker matches",
+        "Stops with user choice instead of auto-selecting",
+        "Does not copy consumer domain types into canonical on promote"
+      ]
+    }
+  ]
+}
