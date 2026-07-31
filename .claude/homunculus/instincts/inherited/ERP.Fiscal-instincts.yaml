@@ -1,0 +1,550 @@
+# Instincts generated from https://github.com/jpolvora/ERP.Fiscal
+# Generated: 2026-07-31T12:57:03.637Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: ERP.Fiscal-commit-conventional
+trigger: "when writing a commit message"
+confidence: 0.85
+domain: git
+source: repo-analysis
+source_repo: https://github.com/jpolvora/ERP.Fiscal
+---
+
+# ERP.Fiscal Commit Conventional
+
+## Action
+
+Use conventional commit format with prefixes: chore, docs, refactor, feat, fix
+
+## Evidence
+
+- 13 commits analyzed
+- Detected conventional commit pattern
+- Examples: chore: add Husky pre-commit hook to block secret leaks, docs: add security progressive disclosure routing
+
+---
+id: ERP.Fiscal-commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/jpolvora/ERP.Fiscal
+---
+
+# ERP.Fiscal Commit Length
+
+## Action
+
+Write moderate-length commit messages (~61 characters)
+
+## Evidence
+
+- Average commit message length: 61 chars
+- Based on 13 commits
+
+---
+id: ERP.Fiscal-naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/jpolvora/ERP.Fiscal
+---
+
+# ERP.Fiscal Naming Files
+
+## Action
+
+Use PascalCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: PascalCase
+
+---
+id: ERP.Fiscal-import-relative
+trigger: "when importing modules"
+confidence: 0.75
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/jpolvora/ERP.Fiscal
+---
+
+# ERP.Fiscal Import Relative
+
+## Action
+
+Use relative imports for project files
+
+## Evidence
+
+- Import analysis shows relative import pattern
+- Example: import { x } from '../lib/x'
+
+---
+id: ERP.Fiscal-export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/jpolvora/ERP.Fiscal
+---
+
+# ERP.Fiscal Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: ERP.Fiscal-test-separate
+trigger: "when writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/jpolvora/ERP.Fiscal
+---
+
+# ERP.Fiscal Test Separate
+
+## Action
+
+Place tests in the tests/ or __tests__/ directory, mirroring src structure
+
+## Evidence
+
+- Separate test directory pattern detected
+- Tests live in dedicated test folders
+
+---
+id: ERP.Fiscal-test-naming
+trigger: "when creating a test file"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/jpolvora/ERP.Fiscal
+---
+
+# ERP.Fiscal Test Naming
+
+## Action
+
+Name test files using the pattern: *Tests.cs
+
+## Evidence
+
+- File pattern: *Tests.cs
+- Consistent across test files
+
+---
+id: ERP.Fiscal-workflow-feature-development
+trigger: "when implementing a new feature"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/jpolvora/ERP.Fiscal
+---
+
+# ERP.Fiscal Workflow Feature Development
+
+## Action
+
+Follow the feature-development workflow:
+1. Add feature implementation
+2. Add tests for feature
+3. Update documentation
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~14x per month
+- Files: **/*.test.*, **/api/**
+
+---
+id: ERP.Fiscal-workflow-agent-skill-package-update
+trigger: "when doing agent skill package update"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/jpolvora/ERP.Fiscal
+---
+
+# ERP.Fiscal Workflow Agent Skill Package Update
+
+## Action
+
+Follow the agent-skill-package-update workflow:
+1. Update or add multiple files under .agents/skills/ (SKILL.md, scripts, references, etc.)
+2. Update .agents/AGENTS.md and/or AGENTS.md at root to reflect changes in skills or routing
+3. Update or clean up related documentation (e.g., shared/AGENTS.md, gates.md, setup.md)
+4. Optionally update rules under .cursor/rules/ or related .mdc files
+5. Optionally update scripts or CHANGELOG.md
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: .agents/skills/*/SKILL.md, .agents/skills/*/scripts/*, .agents/skills/*/README.md
+
+---
+id: ERP.Fiscal-workflow-security-audit-tooling-update
+trigger: "when doing security audit tooling update"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/jpolvora/ERP.Fiscal
+---
+
+# ERP.Fiscal Workflow Security Audit Tooling Update
+
+## Action
+
+Follow the security-audit-tooling-update workflow:
+1. Add or update scripts for security checks (e.g., pre-commit-security-check.sh, audit-history-secrets.sh)
+2. Add or update configuration files for security tools (e.g., .gitleaks.toml, .husky/pre-commit)
+3. Update package.json and package-lock.json to add dependencies
+4. Update documentation (README.md, AGENTS.md, SKILL.md for security-check)
+5. Update .gitignore as needed
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: scripts/pre-commit-security-check.sh, scripts/audit-history-secrets.sh, .husky/pre-commit
+
+---
+id: ERP.Fiscal-workflow-feature-development-plugnotas-provider
+trigger: "when doing feature development plugnotas provider"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/jpolvora/ERP.Fiscal
+---
+
+# ERP.Fiscal Workflow Feature Development Plugnotas Provider
+
+## Action
+
+Follow the feature-development-plugnotas-provider workflow:
+1. Implement or extend provider interfaces and contracts (e.g., INfeAuxiliaresProvider, PlugNotasAuxiliaresContracts)
+2. Update or add new classes in src/ERP.Fiscal.PlugNotas/* (Providers, Contracts, Payload, Extensions, etc.)
+3. Update or add documentation in docs/plugnotas/*
+4. Update or add unit tests in test/ERP.Fiscal.PlugNotas.Tests/*
+5. Update AGENTS.md or related mapping documentation as needed
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: src/ERP.Fiscal.Abstractions/*.cs, src/ERP.Fiscal.PlugNotas/Providers/*.cs, src/ERP.Fiscal.PlugNotas/Contracts/*.cs
+
+---
+id: ERP.Fiscal-workflow-agent-documentation-routing-update
+trigger: "when doing agent documentation routing update"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/jpolvora/ERP.Fiscal
+---
+
+# ERP.Fiscal Workflow Agent Documentation Routing Update
+
+## Action
+
+Follow the agent-documentation-routing-update workflow:
+1. Update AGENTS.md and/or .agents/AGENTS.md to clarify workflow/session handling
+2. Update shared documentation (e.g., gates.md, setup.md, tools.md)
+3. Update or add protocol documentation (e.g., artifact-cleanup.md, delivery-result.md)
+4. Update FAQ or README files to align with new workflow behavior
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: AGENTS.md, .agents/AGENTS.md, .agents/skills/shared/AGENTS.md
+
+---
+id: erp.fiscal-coding-filename-pascalcase
+trigger: "When creating or renaming files in the codebase"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: jpolvora/ERP.Fiscal
+---
+
+# Erp.fiscal Coding Filename Pascalcase
+
+## Action
+
+Use PascalCase for file names
+
+## Evidence
+
+- Pattern in namingConventions.files
+- Files in src/ERP.Fiscal.Abstractions and src/ERP.Fiscal.PlugNotas
+
+---
+id: erp.fiscal-coding-class-pascalcase
+trigger: "When defining a new class"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: jpolvora/ERP.Fiscal
+---
+
+# Erp.fiscal Coding Class Pascalcase
+
+## Action
+
+Name the class using PascalCase
+
+## Evidence
+
+- Pattern in namingConventions.classes
+- Files in src/ERP.Fiscal.PlugNotas/Providers/*.cs
+
+---
+id: erp.fiscal-coding-function-camelcase
+trigger: "When defining a new function"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: jpolvora/ERP.Fiscal
+---
+
+# Erp.fiscal Coding Function Camelcase
+
+## Action
+
+Name the function using camelCase
+
+## Evidence
+
+- Pattern in namingConventions.functions
+- CodeStyle analysis
+
+---
+id: erp.fiscal-coding-constant-screaming-snake-case
+trigger: "When defining a constant"
+confidence: 0.9
+domain: code-style
+source: repo-analysis
+source_repo: jpolvora/ERP.Fiscal
+---
+
+# Erp.fiscal Coding Constant Screaming Snake Case
+
+## Action
+
+Use SCREAMING_SNAKE_CASE for constant names
+
+## Evidence
+
+- Pattern in namingConventions.constants
+
+---
+id: erp.fiscal-coding-import-relative
+trigger: "When importing modules"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: jpolvora/ERP.Fiscal
+---
+
+# Erp.fiscal Coding Import Relative
+
+## Action
+
+Use relative import paths
+
+## Evidence
+
+- Pattern in importStyle: relative
+
+---
+id: erp.fiscal-coding-export-named
+trigger: "When exporting modules or functions"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: jpolvora/ERP.Fiscal
+---
+
+# Erp.fiscal Coding Export Named
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in exportStyle: named
+
+---
+id: erp.fiscal-testing-filepattern
+trigger: "When creating a test file"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: jpolvora/ERP.Fiscal
+---
+
+# Erp.fiscal Testing Filepattern
+
+## Action
+
+Name the test file with the pattern *Tests.cs
+
+## Evidence
+
+- Pattern in testing.filePattern
+- Files in test/ERP.Fiscal.PlugNotas.Tests/*
+
+---
+id: erp.fiscal-testing-unit-tests
+trigger: "When writing tests"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: jpolvora/ERP.Fiscal
+---
+
+# Erp.fiscal Testing Unit Tests
+
+## Action
+
+Write unit tests for new or changed code
+
+## Evidence
+
+- Pattern in testing.testTypes: unit
+- Commit sequences in feature-development-plugnotas-provider workflow
+
+---
+id: erp.fiscal-git-conventional-commits
+trigger: "When writing a commit message"
+confidence: 0.9
+domain: git
+source: repo-analysis
+source_repo: jpolvora/ERP.Fiscal
+---
+
+# Erp.fiscal Git Conventional Commits
+
+## Action
+
+Use Conventional Commits format with prefixes (chore, docs, refactor, feat, fix, delete)
+
+## Evidence
+
+- Pattern in commits.prefixes
+- Examples in commits.examples
+
+---
+id: erp.fiscal-git-commit-length
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: jpolvora/ERP.Fiscal
+---
+
+# Erp.fiscal Git Commit Length
+
+## Action
+
+Keep the commit message concise, around 61 characters on average
+
+## Evidence
+
+- Pattern in commits.averageLength
+
+---
+id: erp.fiscal-workflow-agent-skill-package-update
+trigger: "When someone wants to add, update, or remove agent skill packages"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: jpolvora/ERP.Fiscal
+---
+
+# Erp.fiscal Workflow Agent Skill Package Update
+
+## Action
+
+Update/add files under .agents/skills/, update AGENTS.md and routing, update shared docs, optionally update rules/scripts/CHANGELOG
+
+## Evidence
+
+- Workflow: agent-skill-package-update
+- Commit sequences and files in workflow example
+
+---
+id: erp.fiscal-workflow-security-audit-tooling-update
+trigger: "When someone wants to improve or add security checks, secret scanning, or compliance automation"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: jpolvora/ERP.Fiscal
+---
+
+# Erp.fiscal Workflow Security Audit Tooling Update
+
+## Action
+
+Add/update security check scripts, config files, dependencies, documentation, and .gitignore
+
+## Evidence
+
+- Workflow: security-audit-tooling-update
+- Commit sequences and files in workflow example
+
+---
+id: erp.fiscal-workflow-feature-development-plugnotas-provider
+trigger: "When someone wants to add a new PlugNotas feature, endpoint, or auxiliary provider"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: jpolvora/ERP.Fiscal
+---
+
+# Erp.fiscal Workflow Feature Development Plugnotas Provider
+
+## Action
+
+Implement/extend provider interfaces, update/add classes, docs, unit tests, and mapping docs
+
+## Evidence
+
+- Workflow: feature-development-plugnotas-provider
+- Commit sequences and files in workflow example
+
+---
+id: erp.fiscal-workflow-agent-documentation-routing-update
+trigger: "When someone wants to update documentation to match new workflow protocols or agent behavior"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: jpolvora/ERP.Fiscal
+---
+
+# Erp.fiscal Workflow Agent Documentation Routing Update
+
+## Action
+
+Update AGENTS.md and shared docs, update/add protocol docs, update FAQ/README as needed
+
+## Evidence
+
+- Workflow: agent-documentation-routing-update
+- Commit sequences and files in workflow example
+
