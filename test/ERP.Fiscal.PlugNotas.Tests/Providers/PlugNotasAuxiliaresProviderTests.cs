@@ -2,6 +2,7 @@ using System.Net;
 using System.Threading.Tasks;
 using ERP.Fiscal.PlugNotas.Configuration;
 using ERP.Fiscal.PlugNotas.Providers;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Shouldly;
@@ -16,7 +17,8 @@ public class PlugNotasAuxiliaresProviderTests
         var handler = new FakeHttpMessageHandler();
         var httpClient = FakeHttpMessageHandler.CreateClient(handler);
         var opts = Options.Create(options ?? new PlugNotasOptions());
-        return (new PlugNotasAuxiliaresProvider(httpClient, NullLogger<PlugNotasAuxiliaresProvider>.Instance, opts), handler);
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        return (new PlugNotasAuxiliaresProvider(httpClient, NullLogger<PlugNotasAuxiliaresProvider>.Instance, opts, cache), handler);
     }
 
     [Fact]
@@ -128,5 +130,205 @@ public class PlugNotasAuxiliaresProviderTests
 
         result.Sucesso.ShouldBeFalse();
         result.Mensagem.ShouldBe("CEP não encontrado");
+    }
+
+    [Fact]
+    public async Task ConsultarMunicipiosAsync_deve_mapear_deduplicar_e_filtrar()
+    {
+        var (provider, handler) = CreateProvider();
+        handler.Enqueue(HttpStatusCode.OK, """
+            [
+              { "id": 4115200, "nome": "Maringá", "uf": "PR" },
+              { "id": 4115200, "nome": "Maringá", "uf": "PR" },
+              { "id": 3550308, "nome": "São Paulo", "uf": "SP" }
+            ]
+            """);
+
+        var todos = await provider.ConsultarMunicipiosAsync();
+        todos.Sucesso.ShouldBeTrue();
+        todos.Itens.Count.ShouldBe(2);
+
+        var filtrados = await provider.ConsultarMunicipiosAsync("maring", "PR");
+        filtrados.Sucesso.ShouldBeTrue();
+        filtrados.Itens.Count.ShouldBe(1);
+        filtrados.Itens[0].CodigoIbge.ShouldBe("4115200");
+        filtrados.Itens[0].Nome.ShouldBe("Maringá");
+        filtrados.Itens[0].Uf.ShouldBe("PR");
+    }
+
+    [Fact]
+    public async Task ConsultarMunicipiosAsync_deve_usar_cache_na_segunda_chamada()
+    {
+        var (provider, handler) = CreateProvider(new PlugNotasOptions { MunicipiosCacheMinutes = 60 });
+        handler.Enqueue(HttpStatusCode.OK, """[{ "id": 4115200, "nome": "Maringá", "uf": "PR" }]""");
+
+        await provider.ConsultarMunicipiosAsync();
+        await provider.ConsultarMunicipiosAsync("maringa");
+
+        handler.Requests.Count.ShouldBe(1);
+        handler.Requests[0].RequestUri!.AbsolutePath.ShouldContain("/nfse/cidades");
+    }
+
+    [Fact]
+    public async Task ConsultarMunicipiosAsync_deve_retornar_falha_para_status_nao_2xx()
+    {
+        var (provider, handler) = CreateProvider();
+        handler.Enqueue(HttpStatusCode.BadRequest, """{ "error": { "message": "Motivo do erro" } }""");
+
+        var result = await provider.ConsultarMunicipiosAsync();
+
+        result.Sucesso.ShouldBeFalse();
+        result.Mensagem.ShouldBe("Motivo do erro");
+        result.Itens.Count.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task ConsultarMunicipiosAsync_deve_filtrar_por_codigo_ibge()
+    {
+        var (provider, handler) = CreateProvider();
+        handler.Enqueue(HttpStatusCode.OK, """
+            [
+              { "id": 4115200, "nome": "Maringá", "uf": "PR" },
+              { "id": 3550308, "nome": "São Paulo", "uf": "SP" }
+            ]
+            """);
+
+        var result = await provider.ConsultarMunicipiosAsync("4115200");
+
+        result.Sucesso.ShouldBeTrue();
+        result.Itens.Count.ShouldBe(1);
+        result.Itens[0].Nome.ShouldBe("Maringá");
+    }
+
+    [Fact]
+    public async Task ConsultarMunicipiosAsync_deve_filtrar_somente_por_uf()
+    {
+        var (provider, handler) = CreateProvider();
+        handler.Enqueue(HttpStatusCode.OK, """
+            [
+              { "id": 4115200, "nome": "Maringá", "uf": "PR" },
+              { "id": 4106902, "nome": "Curitiba", "uf": "PR" },
+              { "id": 3550308, "nome": "São Paulo", "uf": "SP" }
+            ]
+            """);
+
+        var result = await provider.ConsultarMunicipiosAsync(null, "sp");
+
+        result.Sucesso.ShouldBeTrue();
+        result.Itens.Count.ShouldBe(1);
+        result.Itens[0].CodigoIbge.ShouldBe("3550308");
+    }
+
+    [Fact]
+    public async Task ConsultarMunicipiosAsync_deve_ignorar_itens_sem_id_ou_nome()
+    {
+        var (provider, handler) = CreateProvider();
+        handler.Enqueue(HttpStatusCode.OK, """
+            [
+              { "id": 4115200, "nome": "Maringá", "uf": "PR" },
+              { "id": 9999999, "uf": "PR" },
+              { "nome": "Sem IBGE", "uf": "PR" }
+            ]
+            """);
+
+        var result = await provider.ConsultarMunicipiosAsync();
+
+        result.Sucesso.ShouldBeTrue();
+        result.Itens.Count.ShouldBe(1);
+        result.Itens[0].CodigoIbge.ShouldBe("4115200");
+    }
+
+    [Fact]
+    public async Task ConsultarMunicipiosAsync_deve_retornar_falha_em_erro_de_rede()
+    {
+        var (provider, handler) = CreateProvider();
+        handler.EnqueueNetworkFailure();
+
+        var result = await provider.ConsultarMunicipiosAsync();
+
+        result.Sucesso.ShouldBeFalse();
+        result.HttpStatusCode.ShouldBe(0);
+        result.Mensagem.ShouldNotBeNullOrWhiteSpace();
+        result.Itens.Count.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task ConsultarMunicipioPorIbgeAsync_nao_deve_consumir_cache_da_lista()
+    {
+        var (provider, handler) = CreateProvider(new PlugNotasOptions { MunicipiosCacheMinutes = 60 });
+        handler.Enqueue(HttpStatusCode.OK, """[{ "id": 4115200, "nome": "Maringá", "uf": "PR" }]""");
+        handler.Enqueue(HttpStatusCode.OK, """{ "id": 3550308, "nome": "São Paulo", "uf": "SP" }""");
+
+        await provider.ConsultarMunicipiosAsync();
+        var porIbge = await provider.ConsultarMunicipioPorIbgeAsync("3550308");
+
+        handler.Requests.Count.ShouldBe(2);
+        porIbge.Sucesso.ShouldBeTrue();
+        porIbge.Municipio!.CodigoIbge.ShouldBe("3550308");
+        handler.Requests[1].RequestUri!.AbsolutePath.ShouldContain("/nfse/cidades/3550308");
+    }
+
+    [Fact]
+    public async Task ConsultarMunicipiosAsync_deve_usar_cache_separado_por_ambiente()
+    {
+        var handler = new FakeHttpMessageHandler();
+        var httpClient = FakeHttpMessageHandler.CreateClient(handler);
+        var cache = new MemoryCache(new MemoryCacheOptions());
+
+        var sandbox = new PlugNotasAuxiliaresProvider(
+            httpClient,
+            NullLogger<PlugNotasAuxiliaresProvider>.Instance,
+            Options.Create(new PlugNotasOptions { OnlySandbox = true, MunicipiosCacheMinutes = 60 }),
+            cache);
+        var producao = new PlugNotasAuxiliaresProvider(
+            httpClient,
+            NullLogger<PlugNotasAuxiliaresProvider>.Instance,
+            Options.Create(new PlugNotasOptions
+            {
+                OnlySandbox = false,
+                ProductionApiKey = "chave-producao-configurada",
+                MunicipiosCacheMinutes = 60
+            }),
+            cache);
+
+        handler.Enqueue(HttpStatusCode.OK, """[{ "id": 4115200, "nome": "Maringá", "uf": "PR" }]""");
+        handler.Enqueue(HttpStatusCode.OK, """[{ "id": 3550308, "nome": "São Paulo", "uf": "SP" }]""");
+
+        var r1 = await sandbox.ConsultarMunicipiosAsync();
+        var r2 = await producao.ConsultarMunicipiosAsync();
+
+        handler.Requests.Count.ShouldBe(2);
+        r1.Itens[0].CodigoIbge.ShouldBe("4115200");
+        r2.Itens[0].CodigoIbge.ShouldBe("3550308");
+        handler.Requests[0].RequestUri!.Host.ShouldBe("api.sandbox.plugnotas.com.br");
+        handler.Requests[1].RequestUri!.Host.ShouldBe("api.plugnotas.com.br");
+    }
+
+    [Fact]
+    public async Task ConsultarMunicipioPorIbgeAsync_deve_mapear_sucesso()
+    {
+        var (provider, handler) = CreateProvider();
+        handler.Enqueue(HttpStatusCode.OK, """{ "id": 4115200, "nome": "Maringá", "uf": "PR" }""");
+
+        var result = await provider.ConsultarMunicipioPorIbgeAsync("4115200");
+
+        result.Sucesso.ShouldBeTrue();
+        result.Municipio!.CodigoIbge.ShouldBe("4115200");
+        result.Municipio.Nome.ShouldBe("Maringá");
+        result.Municipio.Uf.ShouldBe("PR");
+        handler.Requests[0].RequestUri!.AbsolutePath.ShouldContain("/nfse/cidades/4115200");
+    }
+
+    [Fact]
+    public async Task ConsultarMunicipioPorIbgeAsync_deve_retornar_falha_404()
+    {
+        var (provider, handler) = CreateProvider();
+        handler.Enqueue(HttpStatusCode.NotFound, """{ "error": { "message": "Nao localizamos qualquer Cidade" } }""");
+
+        var result = await provider.ConsultarMunicipioPorIbgeAsync("411520");
+
+        result.Sucesso.ShouldBeFalse();
+        result.Municipio.ShouldBeNull();
+        result.Mensagem.ShouldContain("Nao localizamos");
     }
 }

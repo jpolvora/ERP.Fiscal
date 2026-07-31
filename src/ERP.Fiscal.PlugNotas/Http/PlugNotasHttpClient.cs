@@ -270,6 +270,156 @@ internal class PlugNotasHttpClient
     }
 
     // ----------------------------------------------------------------
+    // NFS-e — emissão, consulta, cancelamento, XML/PDF
+    // ----------------------------------------------------------------
+
+    public async Task<PlugNotasNfeEmissaoRawResult> EmitirNfseAsync(
+        string baseUrl, string apiToken, string payloadJson, CancellationToken cancellationToken = default)
+    {
+        var url = Combine(baseUrl, "nfse");
+        var options = _plugNotasOptions.Value;
+        var maxAttempts = options.GetEffectiveMaxAttempts();
+        var baseDelayMs = options.GetEffectiveBaseDelayMs();
+
+        PlugNotasNfeEmissaoRawResult? lastResult = null;
+        for (var attempt = 1; attempt <= maxAttempts; attempt++)
+        {
+            lastResult = await EmitirNfseOnceAsync(url, apiToken, payloadJson, cancellationToken);
+            if (lastResult.Success || !lastResult.IsTransientFailure || attempt >= maxAttempts)
+                return lastResult;
+
+            var delayMs = baseDelayMs * (1 << (attempt - 1));
+            _logger.LogWarning(
+                "PlugNotas POST nfse tentativa {Attempt}/{MaxAttempts} falhou (HTTP {Status}); retry em {DelayMs}ms",
+                attempt, maxAttempts, lastResult.HttpStatusCode, delayMs);
+            await Task.Delay(delayMs, cancellationToken);
+        }
+
+        return lastResult!;
+    }
+
+    private async Task<PlugNotasNfeEmissaoRawResult> EmitirNfseOnceAsync(
+        string url, string apiToken, string payloadJson, CancellationToken cancellationToken)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        request.Headers.TryAddWithoutValidation("x-api-key", apiToken);
+        request.Content = new StringContent(payloadJson ?? "[]", Encoding.UTF8, "application/json");
+
+        try
+        {
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
+            var raw = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogDebug("PlugNotas POST nfse HTTP {Status}", (int)response.StatusCode);
+            return ParseNfeEmissaoResponse((int)response.StatusCode, raw);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return new PlugNotasNfeEmissaoRawResult { HttpStatusCode = 0, ErrorMessage = "Tempo esgotado ao contatar a API PlugNotas (NFS-e)." };
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning(ex, "PlugNotas POST nfse falhou (rede/SSL): {Url}", url);
+            return new PlugNotasNfeEmissaoRawResult { HttpStatusCode = 0, ErrorMessage = $"Falha de rede ao contatar a PlugNotas: {ex.Message}" };
+        }
+    }
+
+    public Task<PlugNotasNfeGetRawResult> ObterNfseResumoPorIdAsync(
+        string baseUrl, string apiToken, string idNotaOrProtocol, CancellationToken cancellationToken = default)
+    {
+        var id = NormalizePlugNotasNfePathId(idNotaOrProtocol);
+        var url = Combine(baseUrl, $"nfse/consultar/{Uri.EscapeDataString(id)}");
+        return SendNfeGetAsync(url, apiToken, cancellationToken);
+    }
+
+    public Task<PlugNotasNfeGetRawResult> ObterNfseResumoPorCnpjIdIntegracaoAsync(
+        string baseUrl, string apiToken, string cpfCnpjDigits, string idIntegracao, CancellationToken cancellationToken = default)
+    {
+        var cnpj = FiscalDigitsHelper.DigitsOnly(cpfCnpjDigits);
+        if (!IsValidCpfCnpjDigits(cnpj))
+        {
+            return Task.FromResult(CreateInvalidCpfCnpjResult());
+        }
+
+        var id = NormalizePlugNotasNfePathId(idIntegracao);
+        var url = Combine(baseUrl, $"nfse/{Uri.EscapeDataString(cnpj)}/{Uri.EscapeDataString(id)}/resumo");
+        return SendNfeGetAsync(url, apiToken, cancellationToken);
+    }
+
+    public Task<PlugNotasNfeGetRawResult> ObterXmlNfsePorIdAsync(
+        string baseUrl, string apiToken, string idDocumento, CancellationToken cancellationToken = default)
+    {
+        var id = NormalizePlugNotasNfePathId(idDocumento);
+        var url = Combine(baseUrl, $"nfse/xml/{Uri.EscapeDataString(id)}");
+        return SendNfeGetAsync(url, apiToken, cancellationToken);
+    }
+
+    public async Task<PlugNotasBinaryRawResult> ObterPdfNfsePorIdAsync(
+        string baseUrl, string apiToken, string idDocumento, CancellationToken cancellationToken = default)
+    {
+        var id = NormalizePlugNotasNfePathId(idDocumento);
+        var url = Combine(baseUrl, $"nfse/pdf/{Uri.EscapeDataString(id)}");
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.TryAddWithoutValidation("x-api-key", apiToken);
+
+        try
+        {
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
+            var status = (int)response.StatusCode;
+            var contentType = response.Content.Headers.ContentType?.MediaType;
+            if (status is >= 200 and < 300)
+            {
+                var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+                if (bytes.Length == 0)
+                    return new PlugNotasBinaryRawResult { HttpStatusCode = status, ErrorMessage = "Resposta PDF vazia." };
+
+                return new PlugNotasBinaryRawResult { HttpStatusCode = status, Content = bytes, ContentType = contentType };
+            }
+
+            var raw = await response.Content.ReadAsStringAsync(cancellationToken);
+            return new PlugNotasBinaryRawResult { HttpStatusCode = status, ErrorMessage = FormatPlugNotasErro(raw) };
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return new PlugNotasBinaryRawResult { HttpStatusCode = 0, ErrorMessage = "Tempo esgotado ao contatar a API PlugNotas (PDF NFS-e)." };
+        }
+        catch (HttpRequestException ex)
+        {
+            return new PlugNotasBinaryRawResult { HttpStatusCode = 0, ErrorMessage = $"Falha de rede ao contatar a PlugNotas: {ex.Message}" };
+        }
+    }
+
+    public async Task<PlugNotasNfeCancelamentoRawResult> CancelarNfseAsync(
+        string baseUrl, string apiToken, string idDocumento, string justificativa, CancellationToken cancellationToken = default)
+    {
+        var id = NormalizePlugNotasNfePathId(idDocumento);
+        var url = Combine(baseUrl, $"nfse/{Uri.EscapeDataString(id)}/cancelamento");
+        var bodyObj = new Dictionary<string, string> { ["justificativa"] = justificativa ?? string.Empty };
+        var body = JsonSerializer.Serialize(bodyObj);
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        request.Headers.TryAddWithoutValidation("x-api-key", apiToken);
+        request.Content = new StringContent(body, Encoding.UTF8, "application/json");
+
+        try
+        {
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
+            var raw = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogDebug("PlugNotas POST nfse/cancelamento HTTP {Status}", (int)response.StatusCode);
+            return ParseNfeCancelamentoResponse((int)response.StatusCode, raw);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            return new PlugNotasNfeCancelamentoRawResult { HttpStatusCode = 0, ErrorMessage = "Tempo esgotado ao contatar a API PlugNotas (cancelamento NFS-e)." };
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning(ex, "PlugNotas POST nfse/cancelamento falhou (rede/SSL): {Url}", url);
+            return new PlugNotasNfeCancelamentoRawResult { HttpStatusCode = 0, ErrorMessage = $"Falha de rede ao contatar a PlugNotas: {ex.Message}" };
+        }
+    }
+
+    // ----------------------------------------------------------------
     // Cadastro — certificado e empresa
     // ----------------------------------------------------------------
 

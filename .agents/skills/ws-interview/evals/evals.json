@@ -1,0 +1,25 @@
+{
+  "skill_name": "ws-interview",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Audit the plan at {plansDir}/oauth-login/step-01-oauth-login.plan.md before we implement.",
+      "expected_output": "Interview-style audit with questions or gaps; refined plan or confirmed shared understanding.",
+      "assertions": [
+        "Agent loads ws-interview",
+        "Does not jump straight to implementation without plan review",
+        "Surfaces ambiguities or missing decisions from the plan"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "The plan looks fine, skip interview and start coding.",
+      "expected_output": "Agent follows interview skill gates or documents assumed-default per orchestrator rules.",
+      "assertions": [
+        "Agent does not silently skip interview obligations when orchestrated at Step 2",
+        "If proceeding, documents assumption or uses user-gate when available",
+        "Uses path tokens ({skillsRoot}, {sharedDir}, {plansDir}) instead of hardcoded consumer paths"
+      ]
+    }
+  ]
+}

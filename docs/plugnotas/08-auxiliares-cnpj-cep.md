@@ -12,7 +12,7 @@ agent:
 
 ## Visão rápida
 
-Rotas auxiliares para **autocomplete de cadastro** (CNPJ e CEP). Não fazem parte do fluxo de emissão NF-e, mas são expostas pela lib via `INfeAuxiliaresProvider`.
+Rotas auxiliares para **autocomplete de cadastro** (CNPJ, CEP e municípios NFS-e). Não fazem parte do fluxo de emissão NF-e, mas são expostas pela lib via `INfeAuxiliaresProvider`.
 
 Autenticação: header `x-api-key` (mesma software house). Host: sandbox ou API oficial conforme `PlugNotasOptions.OnlySandbox` ([`01-ambientes-autenticacao.md`](01-ambientes-autenticacao.md)).
 
@@ -26,8 +26,10 @@ Base: `{baseUrl}` — mesmo host da API fiscal (`api.plugnotas.com.br` ou `api.s
 |----------|--------|------|-----------|------------|
 | Consultar CNPJ | GET | `/cnpj/{cnpj}` | Dados cadastrais e endereço | ✅ `ConsultarCnpjAsync` |
 | Consultar CEP | GET | `/cep/{cep}` | Logradouro, bairro, município, UF, IBGE | ✅ `ConsultarCepAsync` |
+| Listar municípios NFS-e | GET | `/nfse/cidades` | Municípios homologados + metadados | ✅ `ConsultarMunicipiosAsync` (cache) |
+| Município por IBGE | GET | `/nfse/cidades/{codigoIbge}` | Disponibilidade / metadados do município | ✅ `ConsultarMunicipioPorIbgeAsync` |
 
-Path: CPF/CNPJ e CEP **somente dígitos** (a lib normaliza via `FiscalDigitsHelper`).
+Path: CPF/CNPJ, CEP e IBGE **somente dígitos** (a lib normaliza via `FiscalDigitsHelper`).
 
 ---
 
@@ -70,6 +72,27 @@ DTO neutro: `NfeConsultaCepResult`.
 
 ---
 
+## GET `/nfse/cidades` e `/nfse/cidades/{codigoIbge}`
+
+```http
+GET /nfse/cidades
+x-api-key: {token}
+```
+
+**Campos usados no autocomplete** (demais metadados da API são ignorados nesta feature):
+
+| Campo API | Uso |
+|-----------|-----|
+| `id` | Código IBGE (`NfeMunicipioItem.CodigoIbge`) |
+| `nome` | Nome do município |
+| `uf` | UF (2 letras) |
+
+Lista completa é **cacheada** em memória (`IMemoryCache`) com TTL `PlugNotasOptions.MunicipiosCacheMinutes` (default 360). Filtros `filtroNomeOuIbge` / `uf` são aplicados **sobre a lista cacheada** (a API não oferece query de busca).
+
+DTO neutro: `NfeConsultaMunicipiosResult` / `NfeConsultaMunicipioResult`.
+
+---
+
 ## Implementação ERP.Fiscal
 
 | Aspecto | Comportamento |
@@ -78,6 +101,7 @@ DTO neutro: `NfeConsultaCepResult`.
 | Interface | `INfeAuxiliaresProvider` |
 | HTTP | `HttpClient` dedicado (~30 s timeout no módulo) |
 | Ambiente | `OnlySandbox` → sandbox; senão `ProductionApiKey` ou fallback sandbox |
+| Cache municípios | `IMemoryCache` + `MunicipiosCacheMinutes` |
 | Retry | Não |
 
 ---

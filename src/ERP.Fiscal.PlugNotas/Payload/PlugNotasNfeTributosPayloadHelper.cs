@@ -37,8 +37,9 @@ public static class PlugNotasNfeTributosPayloadHelper
     /// Tributos para optante Simples Nacional: envia CST/CSOSN e preenche
     /// <c>baseCalculo</c>, <c>aliquota</c> e <c>valor</c> zerados exigidos pela validação PlugNotas.
     /// </summary>
-    public static PlugNotasNfeTributosItemPayload BuildSimplesNacional(SimplesNacionalEntrada entrada) =>
-        new()
+    public static PlugNotasNfeTributosItemPayload BuildSimplesNacional(SimplesNacionalEntrada entrada)
+    {
+        var tributos = new PlugNotasNfeTributosItemPayload
         {
             Icms = new PlugNotasNfeTributoIcmsPayload
             {
@@ -68,6 +69,10 @@ public static class PlugNotasNfeTributosPayloadHelper
             }
         };
 
+        PlugNotasNfeIcmsCamposPorCstHelper.AplicarCamposPermitidos(tributos.Icms);
+        return tributos;
+    }
+
     /// <summary>Tributos para regime normal com bases e valores calculados a partir do valor do item.</summary>
     public static PlugNotasNfeTributosItemPayload BuildRegimeNormal(RegimeNormalEntrada entrada)
     {
@@ -75,7 +80,7 @@ public static class PlugNotasNfeTributosPayloadHelper
         var basePis = RoundBaseCalculoFromPercentual(entrada.ValorTotalItem, entrada.PisBaseCalculoPercentual);
         var baseCofins = RoundBaseCalculoFromPercentual(entrada.ValorTotalItem, entrada.CofinsBaseCalculoPercentual);
 
-        return new PlugNotasNfeTributosItemPayload
+        var tributos = new PlugNotasNfeTributosItemPayload
         {
             Icms = new PlugNotasNfeTributoIcmsPayload
             {
@@ -108,6 +113,9 @@ public static class PlugNotasNfeTributosPayloadHelper
                 Valor = RoundValorTributo(baseCofins, entrada.CofinsAliquotaPercentual)
             }
         };
+
+        PlugNotasNfeIcmsCamposPorCstHelper.AplicarCamposPermitidos(tributos.Icms);
+        return tributos;
     }
 
     internal static decimal RoundBaseCalculoFromPercentual(decimal valorTotal, decimal baseCalculoPercentual) =>

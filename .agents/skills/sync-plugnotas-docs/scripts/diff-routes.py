@@ -71,6 +71,14 @@ CODE_ROUTES: frozenset[tuple[str, str]] = frozenset(
         ("PATCH", "/empresa/{cnpj}/config"),
         ("GET", "/cnpj/{cnpj}"),
         ("GET", "/cep/{cep}"),
+        ("GET", "/nfse/cidades"),
+        ("GET", "/nfse/cidades/{codigoibge}"),
+        ("POST", "/nfse"),
+        ("GET", "/nfse/consultar/{id}"),
+        ("GET", "/nfse/{cnpj}/{idintegracao}/resumo"),
+        ("GET", "/nfse/xml/{id}"),
+        ("GET", "/nfse/pdf/{id}"),
+        ("POST", "/nfse/{id}/cancelamento"),
     }
 )
 
@@ -78,6 +86,7 @@ DOC_FILES_BY_SCOPE = {
     "certificado": ["02-certificado-digital.md"],
     "empresa": ["03-empresa-emissor.md"],
     "nfe": ["05-nfe-endpoints.md"],
+    "nfse": ["09-nfse-endpoints.md", "08-auxiliares-cnpj-cep.md"],
     "cnpj": ["08-auxiliares-cnpj-cep.md"],
     "cep": ["08-auxiliares-cnpj-cep.md"],
 }

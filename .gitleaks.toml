@@ -1,0 +1,24 @@
+# Config local para scripts/audit-history-secrets.sh (Gitleaks)
+# https://github.com/gitleaks/gitleaks
+
+title = "ERP.Fiscal audit allowlist"
+
+[allowlist]
+description = "Falsos positivos conhecidos neste repositório"
+regexes = [
+  '''2da392a6-79d2-4304-a8b7-959572c7e44d''',
+  '''sua-chave-sandbox-aqui''',
+  '''sua-chave-producao-aqui''',
+  '''chave-prod''',
+  '''chave-producao''',
+  '''SEU_PAT''',
+  '''SEU_PERSONAL_ACCESS_TOKEN''',
+  '''SEU_USUARIO_GITHUB''',
+  '''\$\{\{ secrets\.''',
+]
+paths = [
+  '''\.agents/skills/security-check/''',
+  '''scripts/pre-commit-security-check\.sh''',
+  '''scripts/audit-history-secrets\.sh''',
+  '''scripts/audit-filter-expressions\.txt''',
+]

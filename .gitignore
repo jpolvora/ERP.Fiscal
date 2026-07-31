@@ -19,8 +19,9 @@ secrets.json
 **/secrets/
 
 # IDE / local tooling
-.cursor/
+.cursor/*
 !.cursor/rules/
+!.cursor/rules/**
 .idea/
 *.suo
 *.userosscache
@@ -31,6 +32,13 @@ TestResults/
 *.coverage
 *.coveragexml
 
+# Node (Husky pre-commit)
+node_modules/
+
+# Security audit artifacts
+.security-audit/
+.tools/
+
 # NuGet
 *.nupkg
 
@@ -40,3 +48,6 @@ packages/
 artifacts/
 nuget.config.local
 samples/nuget.config.local
+
+# Workflow shared config (consumer-owned; never commit)
+.agents/skills/shared/config.json

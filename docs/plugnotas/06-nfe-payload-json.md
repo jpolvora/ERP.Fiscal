@@ -49,7 +49,7 @@ Referência cruzada layout NF-e (tags XML entre parênteses na doc PlugNotas).
 | `dataEmissao` | B09 | ISO 8601 | `YYYY-MM-DDTHH:mm:ss-03:00` ou `YYYY-MM-DD` |
 | `dataSaida` | B10 | ISO 8601 | Opcional |
 | `tipo` | B11 | int | 0 entrada, 1 saída |
-| `presencial` | B25b | string | 0–9 indicador presença |
+| `presencial` | B25b | string | 0–9 indicador presença. Com valor `0` (não se aplica), a PlugNotas só aceita `finalidade` 2 (complementar) ou 3 (ajuste). |
 | `consumidorFinal` | B25a | bool | Destinatário consumidor final |
 | `tipoImpressao` | B21 | int | 0–3 DANFE |
 | `tipoEmissao` | B22 | int | 1 normal, contingências 2/5/6/7 |
@@ -112,7 +112,7 @@ Mínimo nos ERPs (cadastro completo já está na PlugNotas):
 | `ncm` | NCM 8 dígitos |
 | `cest` | CEST quando aplicável |
 | `cfop` | CFOP |
-| `codigoBeneficioFiscal` | cBenef UF — omitir se vazio |
+| `codigoBeneficioFiscal` | cBenef UF — omitir se vazio ou se o CST não admitir o campo |
 | `valorUnitario.comercial` | Valor unitário |
 | `valor` | Valor total item (vProd) |
 | `unidade.comercial` / `tributavel` | Siglas ENCAT (ex.: `UN`, `TON`) |
@@ -146,6 +146,55 @@ Mínimo nos ERPs (cadastro completo já está na PlugNotas):
 PlugNotas **calcula impostos ausentes** quando possível, mas o ERP deve enviar CST/regime coerente com cadastro da empresa.
 
 Montagem reutilizável do bloco `tributos` (Simples Nacional e regime normal): `PlugNotasNfeTributosPayloadHelper` em `ERP.Fiscal.PlugNotas/Payload/`.
+
+`PlugNotasNfeCodigoBeneficioFiscalHelper` normaliza o cBenef e só o inclui para os CSTs
+`20`, `30`, `40`, `41`, `50`, `51`, `70` e `90`. A ausência do código não deve
+bloquear localmente a emissão; a exigência varia por UF e é validada pelo provedor/SEFAZ.
+
+---
+
+## Totalizadores (`total`)
+
+| Campo JSON | Tipo | Quando enviar |
+|------------|------|----------------|
+| `valorIcms` | decimal | **Somente** quando há item com `tributos.icms.cst` = `51` (diferimento). Valor = soma dos `tributos.icms.valor` dos itens CST 51. Casing conforme Swagger/Postman oficial (`valorIcms`, não `valorICMS`). |
+
+Workaround Tecnospeed/PlugNotas para evitar rejeição Sefaz *"Total do ICMS difere do somatório dos itens"*. O agrupador `total` deve conter **apenas** `valorIcms` nesse cenário; omitir `total` quando não houver CST 51.
+
+### Posição na árvore JSON (POST `/nfe`)
+
+O corpo é um **array na raiz**; cada elemento é um documento. `total` fica na **raiz do documento**, como irmão de `itens` — **não** dentro de `itens` nem de `tributos`:
+
+```
+[nfe]                          ← array na raiz do POST
+└── documento[0]
+    ├── idIntegracao, natureza, finalidade, ...
+    ├── itens[]
+    │   └── [i]
+    │       └── tributos
+    │           └── icms
+    │               ├── cst
+    │               └── valor          ← ICMS do item (ex.: CST 51)
+    └── total
+        └── valorIcms                  ← soma dos itens[i].tributos.icms.valor com CST 51
+```
+
+Contrato C#: `PlugNotasNfeDocumentPayload.Total` → JSON `total`; `PlugNotasNfeTotalPayload.ValorIcms` → JSON `valorIcms` (`[JsonPropertyName("valorIcms")]`).
+
+```json
+"total": {
+  "valorIcms": 5100
+}
+```
+
+Helper da lib (chamar no builder do ERP **antes** de serializar o POST array):
+
+```csharp
+PlugNotasNfeTotalIcmsCst51Helper.AplicarTotalValorIcmsQuandoCst51(doc);
+```
+
+Para payload já serializado, use
+`AplicarTotalValorIcmsQuandoCst51NoPayloadJson(payloadJson)`.
 
 ---
 
@@ -222,6 +271,7 @@ PlugNotasNfePayloadAmbienteHelper.AplicarProducaoNoPayloadJson(json, NfeAmbiente
 Tipos espelhando JSON (replicar/adaptar na aplicação consumidora):
 
 - `PlugNotasNfeDocumentPayload` — documento raiz
+- `PlugNotasNfeTotalPayload` — agrupador `total` (workaround CST 51)
 - `PlugNotasNfeItemPayload`, `PlugNotasNfeTributosItemPayload`
 - `PlugNotasNfeEmitentePayload`, `PlugNotasNfeDestinatarioPayload`
 
@@ -234,8 +284,12 @@ Builders de payload a partir do domínio **não** pertencem a `ERP.Fiscal` — f
 ## Validações PlugNotas (POST)
 
 - Schema JSON (campos obrigatórios, tipos, enums)
+- `finalidade`: inteiros **1–6** apenas
+- `presencial` = `"0"` (não se aplica): `finalidade` deve ser **2** (complementar) ou **3** (ajuste) — combinação inválida gera `error.data.fields.documento[0].finalidade`
 - Regras de negócio (IE, CFOP, CST compatível, etc.)
 - Empresa e certificado devem existir no mesmo ambiente (host)
+
+Helper neutro na lib: `PlugNotasNfeNaturezaCamposHelper` + `PlugNotasNfePayloadReadiness.Avaliar` (validação pré-transmissão no ERP).
 
 Erros retornam HTTP 400 com `error.message` e `error.data.fields` quando aplicável.
 

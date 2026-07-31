@@ -46,13 +46,15 @@ public static class PlugNotasNfeConsultaRespostaParser
 
         if (TryGetStringIgnoreCase(obj, "status", out var st))
             dto.StatusPlugNotas = st;
-        dto.ChaveAcesso = TryGetStringAny(obj, "chave", "chaveAcesso", "chave_acesso");
+        else if (TryGetStringIgnoreCase(obj, "situacao", out var situacao))
+            dto.StatusPlugNotas = situacao;
+        dto.ChaveAcesso = TryGetStringAny(obj, "chave", "chaveAcesso", "chave_acesso", "codigoVerificacao", "codigo_verificacao");
         var idBruto = TryGetStringAny(obj, "id");
         if (NfeProvedorIdentificadorRules.LooksLikeIdDocumentoPlugNotas(idBruto))
             dto.IdDocumentoProvedor = idBruto;
         dto.ProtocoloAutorizacao = TryGetStringAny(obj, "protocolo", "nProt", "numeroProtocolo");
         dto.MensagemSefaz = TryGetStringAny(obj, "mensagem", "message", "xMotivo");
-        dto.NumeroNota = TryGetStringAny(obj, "numero", "nNF");
+        dto.NumeroNota = TryGetStringAny(obj, "numero", "nNF", "numeroNfse", "numeroNFe");
         dto.Serie = TryGetStringAny(obj, "serie", "serieNFe");
 
         if (TryGetIntProperty(obj, "cStat", "cstat", out var cStat))

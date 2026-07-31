@@ -22,6 +22,8 @@ public class PlugNotasFiscalModule : AbpModule
         var configuration = context.Services.GetConfiguration();
         context.Services.Configure<PlugNotasOptions>(configuration.GetSection(PlugNotasOptions.SectionName));
 
+        context.Services.AddMemoryCache();
+
         context.Services.AddHttpClient<PlugNotasHttpClient>()
             .ConfigureHttpClient(c => c.Timeout = TimeSpan.FromMinutes(2));
 
@@ -29,6 +31,7 @@ public class PlugNotasFiscalModule : AbpModule
             .ConfigureHttpClient(c => c.Timeout = TimeSpan.FromSeconds(30));
 
         context.Services.AddTransient<INfeEmissaoProvider, PlugNotasNfeEmissaoProvider>();
+        context.Services.AddTransient<INfseEmissaoProvider, PlugNotasNfseEmissaoProvider>();
         context.Services.AddTransient<INfeIntegracaoProvider, PlugNotasIntegracaoProvider>();
         context.Services.AddTransient<INfeDestinadaProvider, PlugNotasDestinadaProvider>();
     }

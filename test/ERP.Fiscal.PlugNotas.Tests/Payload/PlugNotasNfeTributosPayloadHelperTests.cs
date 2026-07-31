@@ -21,8 +21,8 @@ public class PlugNotasNfeTributosPayloadHelperTests
         tributos.Icms!.Cst.ShouldBe("40");
         tributos.Icms.BaseCalculo.ShouldNotBeNull();
         tributos.Icms.BaseCalculo!.Valor.ShouldBe(0);
-        tributos.Icms.Aliquota.ShouldBe(0);
-        tributos.Icms.Valor.ShouldBe(0);
+        tributos.Icms.Aliquota.ShouldBeNull();
+        tributos.Icms.Valor.ShouldBeNull();
 
         tributos.Pis!.BaseCalculo!.Valor.ShouldBe(0);
         tributos.Pis.Aliquota.ShouldBe(0);

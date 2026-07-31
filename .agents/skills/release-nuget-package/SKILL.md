@@ -27,7 +27,11 @@ Skill para o **fluxo completo de publicação** dos pacotes `ERP.Fiscal.Abstract
 | Após release | `release.sh verify [versão]` |
 | Merge de `develop` + release | `release.sh publish --merge-develop` |
 
-Antes de commitar ou publicar, aplicar a skill [`security-check`](../security-check/SKILL.md) (sem segredos em `nuget.props`, logs ou mensagens de commit).
+Antes de commitar ou publicar:
+
+1. Aplicar a skill [`security-check`](../security-check/SKILL.md) (sem segredos em `nuget.props`, logs ou mensagens de commit).
+2. Consultar o índice [`docs/security/README.md`](../../../docs/security/README.md) para comandos npm.
+3. Opcional antes de release: `npm run security:audit-history` (auditoria read-only do histórico Git).
 
 ---
 
